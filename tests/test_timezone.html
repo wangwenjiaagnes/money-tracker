@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timezone Test - Money Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕐 时区测试页面</h1>
+        <p>这个页面用于测试时区修复功能是否正常工作。</p>
+
+        <div class="test-section">
+            <h2>1. 当前时区信息</h2>
+            <div id="timezone-info" class="test-result info"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 时间转换测试</h2>
+            <div>
+                <label>输入本地时间:</label>
+                <input type="datetime-local" id="localTime" value="">
+                <button onclick="testTimeConversion()">测试转换</button>
+            </div>
+            <div id="conversion-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 数据库字段测试</h2>
+            <div>
+                <button onclick="testDatabaseFields()">测试数据库字段</button>
+            </div>
+            <div id="database-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. 实际交易测试</h2>
+            <div>
+                <button onclick="createTestTransaction()">创建测试交易</button>
+                <button onclick="loadRecentTransactions()">加载最近交易</button>
+            </div>
+            <div id="transaction-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. 新的时区处理逻辑测试</h2>
+            <div>
+                <button onclick="testNewTimezoneLogic()">测试新的时区处理逻辑</button>
+            </div>
+            <div id="timezone-test-result" class="test-result"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/supabase.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script>
+        // 初始化时区信息
+        function initTimezoneInfo() {
+            const now = new Date();
+            const timezoneInfo = document.getElementById('timezone-info');
+            
+            timezoneInfo.innerHTML = `
+                <strong>当前时间:</strong> ${now.toString()}<br>
+                <strong>时区偏移:</strong> ${now.getTimezoneOffset()} 分钟<br>
+                <strong>时区名称:</strong> ${Intl.DateTimeFormat().resolvedOptions().timeZone}<br>
+                <strong>ISO字符串:</strong> ${now.toISOString()}<br>
+                <strong>本地字符串:</strong> ${now.toLocaleString()}
+            `;
+        }
+
+        // 测试时间转换
+        function testTimeConversion() {
+            const localTimeInput = document.getElementById('localTime');
+            const resultDiv = document.getElementById('conversion-result');
+            
+            if (!localTimeInput.value) {
+                resultDiv.innerHTML = '<div class="error">请先输入本地时间</div>';
+                return;
+            }
+
+            const localDateTime = new Date(localTimeInput.value);
+            const isoString = localDateTime.toISOString();
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <strong>输入时间:</strong> ${localTimeInput.value}<br>
+                    <strong>本地时间对象:</strong> ${localDateTime.toString()}<br>
+                    <strong>ISO字符串:</strong> ${isoString}<br>
+                    <strong>UTC时间:</strong> ${new Date(isoString).toUTCString()}<br>
+                    <strong>转换回本地:</strong> ${new Date(isoString).toLocaleString()}
+                </div>
+            `;
+        }
+
+        // 测试数据库字段
+        async function testDatabaseFields() {
+            const resultDiv = document.getElementById('database-result');
+            resultDiv.innerHTML = '<div class="info">正在检查数据库字段...</div>';
+
+            try {
+                // 检查transactions表是否有transaction_date_local字段
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .select('transaction_date, transaction_date_local')
+                    .limit(1);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">数据库错误: ${error.message}</div>`;
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    const transaction = data[0];
+                    const hasLocalField = 'transaction_date_local' in transaction;
+                    
+                    resultDiv.innerHTML = `
+                        <div class="${hasLocalField ? 'success' : 'error'}">
+                            <strong>transaction_date_local字段:</strong> ${hasLocalField ? '✅ 存在' : '❌ 不存在'}<br>
+                            <strong>示例数据:</strong><br>
+                            - transaction_date: ${transaction.transaction_date || 'N/A'}<br>
+                            - transaction_date_local: ${transaction.transaction_date_local || 'N/A'}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="info">没有找到交易数据</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">测试失败: ${error.message}</div>`;
+            }
+        }
+
+        // 创建测试交易
+        async function createTestTransaction() {
+            const resultDiv = document.getElementById('transaction-result');
+            resultDiv.innerHTML = '<div class="info">正在创建测试交易...</div>';
+
+            try {
+                const now = new Date();
+                const isoDateTime = now.toISOString();
+                
+                // 创建不带时区的本地时间格式
+                const localYear = now.getFullYear();
+                const localMonth = String(now.getMonth() + 1).padStart(2, '0');
+                const localDay = String(now.getDate()).padStart(2, '0');
+                const localHours = String(now.getHours()).padStart(2, '0');
+                const localMinutes = String(now.getMinutes()).padStart(2, '0');
+                const localSeconds = String(now.getSeconds()).padStart(2, '0');
+                const localDateTime = `${localYear}-${localMonth}-${localDay} ${localHours}:${localMinutes}:${localSeconds}`;
+                
+                const testTransaction = {
+                    ledger_id: 1,
+                    ledger_name: 'Daily',
+                    transaction_date: isoDateTime,
+                    transaction_date_local: window.timezoneManager.getLocalTimeString(isoDateTime), // 使用时区管理器生成本地时间字符串
+                    type: 'expense',
+                    amount: '0.01',
+                    currency: 'SGD',
+                    category_id: '337704b9-9005-4531-a0b9-7dbfc2fb06e0',
+                    notes: '时区测试交易 - ' + now.toLocaleString(),
+                    payer_id: '77aeca19-6acd-489e-9542-e4a9a9c83c6a',
+                    payer_name: 'Wenjia',
+                    needs_reimbursement: false,
+                    sgd_rate: 1.0,
+                    sgd_amount: 0.01,
+                    cny_rate: 5.59,
+                    cny_amount: 0.06,
+                    usd_rate: 0.78,
+                    usd_amount: 0.01,
+                    myr_rate: 3.29,
+                    myr_amount: 0.03,
+                    reimbursement_status: 'not_needed',
+                    creator_id: '77aeca19-6acd-489e-9542-e4a9a9c83c6a',
+                    creator_name: 'Wenjia',
+                    creator_email: 'wangwenjiaagnes@gmail.com',
+                    created_at: new Date().toISOString() // 添加创建时间
+                };
+
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .insert([testTransaction]);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">创建失败: ${error.message}</div>`;
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>测试交易创建成功!</strong><br>
+                        <strong>交易ID:</strong> ${data[0].id}<br>
+                        <strong>创建时间:</strong> ${now.toLocaleString()}<br>
+                        <strong>transaction_date:</strong> ${testTransaction.transaction_date}<br>
+                        <strong>transaction_date_local:</strong> ${testTransaction.transaction_date_local}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">创建失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载最近交易
+        async function loadRecentTransactions() {
+            const resultDiv = document.getElementById('transaction-result');
+            resultDiv.innerHTML = '<div class="info">正在加载最近交易...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('transactions')
+                    .select('id, transaction_date, transaction_date_local, notes, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) {
+                    resultDiv.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    let html = '<div class="success"><strong>最近5笔交易:</strong><br>';
+                    data.forEach((transaction, index) => {
+                        let localDate, utcDate;
+                        
+                        // 使用时区管理器转换UTC时间为本地时间显示
+                        if (transaction.transaction_date) {
+                            utcDate = new Date(transaction.transaction_date).toLocaleString();
+                            localDate = window.timezoneManager.convertToLocalTime(transaction.transaction_date);
+                        } else {
+                            utcDate = 'N/A';
+                            localDate = 'N/A';
+                        }
+                        
+                        html += `
+                            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                                <strong>交易 ${index + 1}:</strong> ${transaction.notes}<br>
+                                <strong>transaction_date (UTC):</strong> ${utcDate}<br>
+                                <strong>transaction_date_local:</strong> ${localDate}<br>
+                                <strong>创建时间:</strong> ${new Date(transaction.created_at).toLocaleString()}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = '<div class="info">没有找到交易数据</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 测试新的时区处理逻辑
+        async function testNewTimezoneLogic() {
+            const resultDiv = document.getElementById('timezone-test-result');
+            resultDiv.innerHTML = '<div class="info">正在测试新的时区处理逻辑...</div>';
+
+            try {
+                // 测试数据
+                const testCases = [
+                    {
+                        name: 'ISO格式（带时区）',
+                        data: '2025-08-20T13:52:00+00:00',
+                        expected: '2025-08-20'
+                    },
+                    {
+                        name: '本地时间格式（不带时区）',
+                        data: '2025-08-20 13:52:00',
+                        expected: '2025-08-20'
+                    },
+                    {
+                        name: '只有日期',
+                        data: '2025-08-20',
+                        expected: '2025-08-20'
+                    }
+                ];
+
+                let html = '<div class="success"><strong>时区处理逻辑测试结果:</strong><br>';
+                
+                testCases.forEach((testCase, index) => {
+                    let dateOnly;
+                    if (testCase.data.includes('T')) {
+                        dateOnly = testCase.data.split('T')[0];
+                    } else if (testCase.data.includes(' ')) {
+                        dateOnly = testCase.data.split(' ')[0];
+                    } else {
+                        dateOnly = testCase.data;
+                    }
+                    
+                    const passed = dateOnly === testCase.expected;
+                    
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; background: ${passed ? '#d4edda' : '#f8d7da'}; border-radius: 4px;">
+                            <strong>测试 ${index + 1}:</strong> ${testCase.name}<br>
+                            <strong>输入:</strong> ${testCase.data}<br>
+                            <strong>输出:</strong> ${dateOnly}<br>
+                            <strong>期望:</strong> ${testCase.expected}<br>
+                            <strong>结果:</strong> ${passed ? '✅ 通过' : '❌ 失败'}
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">测试失败: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initTimezoneInfo();
+            
+            // 设置当前时间为默认值
+            const now = new Date();
+            const localTimeInput = document.getElementById('localTime');
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            localTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        });
+    </script>
+</body>
+</html>

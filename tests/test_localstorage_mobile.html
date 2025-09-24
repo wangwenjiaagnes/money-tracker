@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Mobile Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 LocalStorage 移动端测试</h1>
+        <p>专门用于测试移动端localStorage功能</p>
+
+        <div class="test-section">
+            <h3>🔧 基本localStorage测试</h3>
+            <div class="form-group">
+                <label for="testKey">测试键:</label>
+                <input type="text" id="testKey" value="test_key" placeholder="输入键名">
+            </div>
+            <div class="form-group">
+                <label for="testValue">测试值:</label>
+                <input type="text" id="testValue" value="test_value" placeholder="输入值">
+            </div>
+            <button onclick="testBasicLocalStorage()">测试基本localStorage</button>
+            <button onclick="clearTestData()">清除测试数据</button>
+            <div id="basicResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💰 币种偏好测试</h3>
+            <div class="form-group">
+                <label for="currencyTest">选择币种:</label>
+                <select id="currencyTest">
+                    <option value="">请选择币种</option>
+                    <option value="SGD">SGD</option>
+                    <option value="CNY">CNY</option>
+                    <option value="USD">USD</option>
+                    <option value="MYR">MYR</option>
+                </select>
+            </div>
+            <button onclick="testCurrencySave()">保存币种</button>
+            <button onclick="testCurrencyLoad()">加载币种</button>
+            <div id="currencyResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 类型偏好测试</h3>
+            <div class="form-group">
+                <label for="typeTest">选择类型:</label>
+                <select id="typeTest">
+                    <option value="">请选择类型</option>
+                    <option value="expense">支出 (Expense)</option>
+                    <option value="income">收入 (Income)</option>
+                </select>
+            </div>
+            <button onclick="testTypeSave()">保存类型</button>
+            <button onclick="testTypeLoad()">加载类型</button>
+            <div id="typeResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 当前localStorage状态</h3>
+            <button onclick="showAllLocalStorage()">显示所有localStorage</button>
+            <button onclick="clearAllLocalStorage()">清除所有localStorage</button>
+            <div id="allLocalStorage" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 页面刷新测试</h3>
+            <p>选择一些值，然后刷新页面，看看是否能记住</p>
+            <button onclick="location.reload()">刷新页面</button>
+            <div id="refreshResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 基本localStorage测试
+        function testBasicLocalStorage() {
+            const key = document.getElementById('testKey').value;
+            const value = document.getElementById('testValue').value;
+            
+            try {
+                localStorage.setItem(key, value);
+                const retrieved = localStorage.getItem(key);
+                showResult('basicResult', `✅ 保存成功!\n键: ${key}\n值: ${value}\n读取: ${retrieved}`, 'success');
+            } catch (error) {
+                showResult('basicResult', `❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        function clearTestData() {
+            const key = document.getElementById('testKey').value;
+            localStorage.removeItem(key);
+            showResult('basicResult', `🗑️ 已清除键: ${key}`, 'success');
+        }
+
+        // 币种测试
+        function testCurrencySave() {
+            const currency = document.getElementById('currencyTest').value;
+            if (!currency) {
+                showResult('currencyResult', '❌ 请先选择币种', 'error');
+                return;
+            }
+            
+            try {
+                localStorage.setItem('money_tracker_last_currency', currency);
+                showResult('currencyResult', `✅ 币种已保存: ${currency}`, 'success');
+            } catch (error) {
+                showResult('currencyResult', `❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testCurrencyLoad() {
+            try {
+                const saved = localStorage.getItem('money_tracker_last_currency');
+                if (saved) {
+                    document.getElementById('currencyTest').value = saved;
+                    showResult('currencyResult', `✅ 币种已加载: ${saved}`, 'success');
+                } else {
+                    showResult('currencyResult', '❌ 没有保存的币种', 'error');
+                }
+            } catch (error) {
+                showResult('currencyResult', `❌ 加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 类型测试
+        function testTypeSave() {
+            const type = document.getElementById('typeTest').value;
+            if (!type) {
+                showResult('typeResult', '❌ 请先选择类型', 'error');
+                return;
+            }
+            
+            try {
+                localStorage.setItem('money_tracker_last_type', type);
+                showResult('typeResult', `✅ 类型已保存: ${type}`, 'success');
+            } catch (error) {
+                showResult('typeResult', `❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testTypeLoad() {
+            try {
+                const saved = localStorage.getItem('money_tracker_last_type');
+                if (saved) {
+                    document.getElementById('typeTest').value = saved;
+                    showResult('typeResult', `✅ 类型已加载: ${saved}`, 'success');
+                } else {
+                    showResult('typeResult', '❌ 没有保存的类型', 'error');
+                }
+            } catch (error) {
+                showResult('typeResult', `❌ 加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示所有localStorage
+        function showAllLocalStorage() {
+            try {
+                const allData = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    allData[key] = value;
+                }
+                
+                const resultDiv = document.getElementById('allLocalStorage');
+                resultDiv.innerHTML = `<pre>${JSON.stringify(allData, null, 2)}</pre>`;
+                resultDiv.className = 'result';
+            } catch (error) {
+                showResult('allLocalStorage', `❌ 读取失败: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAllLocalStorage() {
+            try {
+                localStorage.clear();
+                showResult('allLocalStorage', '🗑️ 所有localStorage已清除', 'success');
+            } catch (error) {
+                showResult('allLocalStorage', `❌ 清除失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        // 页面加载时自动加载保存的值
+        document.addEventListener('DOMContentLoaded', function() {
+            // 自动加载币种
+            const savedCurrency = localStorage.getItem('money_tracker_last_currency');
+            if (savedCurrency) {
+                document.getElementById('currencyTest').value = savedCurrency;
+            }
+            
+            // 自动加载类型
+            const savedType = localStorage.getItem('money_tracker_last_type');
+            if (savedType) {
+                document.getElementById('typeTest').value = savedType;
+            }
+            
+            // 显示刷新测试结果
+            const refreshResult = document.getElementById('refreshResult');
+            if (savedCurrency || savedType) {
+                refreshResult.textContent = `✅ 页面刷新后自动加载了保存的值:\n币种: ${savedCurrency || '(无)'}\n类型: ${savedType || '(无)'}`;
+                refreshResult.className = 'result success';
+            } else {
+                refreshResult.textContent = '❌ 页面刷新后没有找到保存的值';
+                refreshResult.className = 'result error';
+            }
+            
+            console.log('LocalStorage Mobile Test Page Loaded');
+            console.log('localStorage 支持:', typeof(Storage) !== "undefined");
+            console.log('localStorage 可用:', !!window.localStorage);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Date Range Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Date Range Filter Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // 测试Date Range功能
+        function testDateRange() {
+            const results = [];
+            
+            // 测试1: 检查localStorage中的筛选器状态
+            try {
+                const savedFilters = localStorage.getItem('moneyTrackerFilters');
+                if (savedFilters) {
+                    const filters = JSON.parse(savedFilters);
+                    if (filters.dateRange) {
+                        results.push({
+                            test: 'LocalStorage Date Range Structure',
+                            status: 'success',
+                            message: `Date range found: mode=${filters.dateRange.mode}, value=${JSON.stringify(filters.dateRange.value)}`
+                        });
+                    } else {
+                        results.push({
+                            test: 'LocalStorage Date Range Structure',
+                            status: 'error',
+                            message: 'Date range not found in filters'
+                        });
+                    }
+                } else {
+                    results.push({
+                        test: 'LocalStorage Date Range Structure',
+                        status: 'success',
+                        message: 'No saved filters found (this is normal for first visit)'
+                    });
+                }
+            } catch (error) {
+                results.push({
+                    test: 'LocalStorage Date Range Structure',
+                    status: 'error',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // 测试2: 测试日期范围计算
+            try {
+                const now = new Date();
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+                startOfWeek.setHours(0, 0, 0, 0);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
+                
+                results.push({
+                    test: 'Week Range Calculation',
+                    status: 'success',
+                    message: `Week range: ${startOfWeek.toDateString()} to ${endOfWeek.toDateString()}`
+                });
+            } catch (error) {
+                results.push({
+                    test: 'Week Range Calculation',
+                    status: 'error',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // 测试3: 测试年份范围
+            try {
+                const yearRange = { start: 2006, end: 2025 };
+                const years = [];
+                for (let year = yearRange.start; year <= yearRange.end; year++) {
+                    years.push(year);
+                }
+                
+                results.push({
+                    test: 'Year Range Generation',
+                    status: 'success',
+                    message: `Generated ${years.length} years from ${yearRange.start} to ${yearRange.end}`
+                });
+            } catch (error) {
+                results.push({
+                    test: 'Year Range Generation',
+                    status: 'error',
+                    message: `Error: ${error.message}`
+                });
+            }
+            
+            // 显示结果
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '';
+            
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `test-result ${result.status}`;
+                resultDiv.innerHTML = `
+                    <strong>${result.test}:</strong> ${result.message}
+                `;
+                resultsDiv.appendChild(resultDiv);
+            });
+        }
+        
+        // 页面加载时运行测试
+        window.addEventListener('load', testDateRange);
+    </script>
+</body>
+</html>
+
+
+
+

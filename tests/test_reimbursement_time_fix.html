@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reimbursement Time Format Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reimbursement Time Format Test</h1>
+    
+    <div class="test-section">
+        <h2>Time Format Tests</h2>
+        <button onclick="testTimeFormats()">Test Time Formats</button>
+        <div id="timeFormatResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Device Detection</h2>
+        <button onclick="detectDevice()">Detect Device</button>
+        <div id="deviceResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>ISO String Test</h2>
+        <button onclick="testISOString()">Test ISO String</button>
+        <div id="isoResults"></div>
+    </div>
+
+    <script>
+        function testTimeFormats() {
+            const results = document.getElementById('timeFormatResults');
+            results.innerHTML = '';
+            
+            const now = new Date();
+            
+            // Test different time formats
+            const formats = [
+                {
+                    name: 'toISOString()',
+                    value: now.toISOString(),
+                    expected: 'ISO 8601 format'
+                },
+                {
+                    name: 'toLocaleString(\'en-CA\')',
+                    value: now.toLocaleString('en-CA'),
+                    expected: 'Canadian format (may vary by device)'
+                },
+                {
+                    name: 'toLocaleString(\'en-CA\') + \':00\'',
+                    value: now.toLocaleString('en-CA').replace(',', '') + ':00',
+                    expected: 'Modified Canadian format'
+                },
+                {
+                    name: 'toLocaleString(\'en-US\')',
+                    value: now.toLocaleString('en-US'),
+                    expected: 'US format'
+                }
+            ];
+            
+            formats.forEach(format => {
+                const div = document.createElement('div');
+                div.className = 'test-result';
+                div.innerHTML = `
+                    <strong>${format.name}:</strong><br>
+                    <strong>Expected:</strong> ${format.expected}<br>
+                    <strong>Result:</strong> ${format.value}<br>
+                    <strong>Length:</strong> ${format.value.length} characters
+                `;
+                results.appendChild(div);
+            });
+        }
+
+        function detectDevice() {
+            const results = document.getElementById('deviceResults');
+            results.innerHTML = '';
+            
+            const deviceInfo = {
+                'User Agent': navigator.userAgent,
+                'Platform': navigator.platform,
+                'Language': navigator.language,
+                'Languages': navigator.languages.join(', '),
+                'Cookie Enabled': navigator.cookieEnabled,
+                'OnLine': navigator.onLine,
+                'Screen Width': screen.width,
+                'Screen Height': screen.height,
+                'Window Width': window.innerWidth,
+                'Window Height': window.innerHeight,
+                'Device Pixel Ratio': window.devicePixelRatio
+            };
+            
+            Object.entries(deviceInfo).forEach(([key, value]) => {
+                const div = document.createElement('div');
+                div.className = 'test-result';
+                div.innerHTML = `<strong>${key}:</strong> ${value}`;
+                results.appendChild(div);
+            });
+        }
+
+        function testISOString() {
+            const results = document.getElementById('isoResults');
+            results.innerHTML = '';
+            
+            const now = new Date();
+            const isoString = now.toISOString();
+            
+            // Test if it's a valid ISO string
+            const isValidISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(isoString);
+            
+            const div = document.createElement('div');
+            div.className = `test-result ${isValidISO ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <strong>ISO String:</strong> ${isoString}<br>
+                <strong>Valid ISO Format:</strong> ${isValidISO ? '✅ Yes' : '❌ No'}<br>
+                <strong>Length:</strong> ${isoString.length} characters<br>
+                <strong>Parsed Date:</strong> ${new Date(isoString).toString()}
+            `;
+            results.appendChild(div);
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            testTimeFormats();
+            detectDevice();
+            testISOString();
+        });
+    </script>
+</body>
+</html>

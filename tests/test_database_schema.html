@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .schema-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .table-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Database Schema Diagnostic Tool</h1>
+        <p>This tool helps diagnose database schema issues, particularly the owner_id type mismatch problem.</p>
+    </div>
+
+    <div class="container">
+        <div class="test-section">
+            <h3>1. 检查表结构</h3>
+            <button onclick="checkTableSchema()">检查表结构</button>
+            <div id="schema-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 检查用户数据</h3>
+            <button onclick="checkUserData()">检查用户数据</button>
+            <div id="user-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 测试钱包创建</h3>
+            <button onclick="testWalletCreation()">测试钱包创建</button>
+            <div id="wallet-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 检查 RLS 策略</h3>
+            <button onclick="checkRLSPolicies()">检查 RLS 策略</button>
+            <div id="rls-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 生成修复脚本</h3>
+            <button onclick="generateFixScript()">生成修复脚本</button>
+            <div id="fix-script-results"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // 初始化 Supabase
+        const supabaseUrl = window.APP_CONFIG.api.supabase.url;
+        const supabaseKey = window.APP_CONFIG.api.supabase.anonKey;
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        async function checkTableSchema() {
+            clearResults('schema-results');
+            addResult('schema-results', '正在检查表结构...', 'info');
+
+            try {
+                // 检查 wallets 表结构
+                const { data: walletsData, error: walletsError } = await supabase
+                    .from('wallets')
+                    .select('*')
+                    .limit(1);
+
+                if (walletsError) {
+                    addResult('schema-results', `Wallets 表查询错误: ${walletsError.message}`, 'error');
+                } else {
+                    addResult('schema-results', 'Wallets 表可以访问', 'success');
+                }
+
+                // 检查 allowed_users 表结构
+                const { data: usersData, error: usersError } = await supabase
+                    .from('allowed_users')
+                    .select('*')
+                    .limit(1);
+
+                if (usersError) {
+                    addResult('schema-results', `Allowed_users 表查询错误: ${usersError.message}`, 'error');
+                } else {
+                    addResult('schema-results', 'Allowed_users 表可以访问', 'success');
+                }
+
+                // 显示示例数据
+                if (walletsData && walletsData.length > 0) {
+                    const wallet = walletsData[0];
+                    addResult('schema-results', `
+                        <strong>Wallets 表示例数据:</strong><br>
+                        <pre>${JSON.stringify(wallet, null, 2)}</pre>
+                    `, 'info');
+                }
+
+                if (usersData && usersData.length > 0) {
+                    const user = usersData[0];
+                    addResult('schema-results', `
+                        <strong>Allowed_users 表示例数据:</strong><br>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    `, 'info');
+                }
+
+            } catch (error) {
+                addResult('schema-results', `检查表结构时出错: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkUserData() {
+            clearResults('user-results');
+            addResult('user-results', '正在检查用户数据...', 'info');
+
+            try {
+                // 获取当前用户
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (authError || !user) {
+                    addResult('user-results', '请先登录', 'warning');
+                    return;
+                }
+
+                addResult('user-results', `当前用户: ${user.email}`, 'info');
+
+                // 检查用户在 allowed_users 中的记录
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('*')
+                    .eq('email', user.email)
+                    .single();
+
+                if (userError) {
+                    addResult('user-results', `用户数据查询错误: ${userError.message}`, 'error');
+                } else if (userData) {
+                    addResult('user-results', `
+                        <strong>用户数据:</strong><br>
+                        <pre>${JSON.stringify(userData, null, 2)}</pre>
+                    `, 'success');
+                } else {
+                    addResult('user-results', '用户不在 allowed_users 表中', 'warning');
+                }
+
+            } catch (error) {
+                addResult('user-results', `检查用户数据时出错: ${error.message}`, 'error');
+            }
+        }
+
+        async function testWalletCreation() {
+            clearResults('wallet-results');
+            addResult('wallet-results', '正在测试钱包创建...', 'info');
+
+            try {
+                // 获取当前用户
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (authError || !user) {
+                    addResult('wallet-results', '请先登录', 'warning');
+                    return;
+                }
+
+                // 获取用户在 allowed_users 中的 ID
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name')
+                    .eq('email', user.email)
+                    .single();
+
+                if (userError || !userData) {
+                    addResult('wallet-results', '无法获取用户ID', 'error');
+                    return;
+                }
+
+                addResult('wallet-results', `用户ID类型: ${typeof userData.id}`, 'info');
+                addResult('wallet-results', `用户ID值: ${userData.id}`, 'info');
+
+                // 尝试创建测试钱包
+                const testWalletData = {
+                    name: 'Test Wallet - ' + new Date().toISOString(),
+                    wallet_type: 'personal',
+                    owner_id: userData.id, // 这里会触发类型错误
+                    currency: 'SGD',
+                    balance: '0.00',
+                    description: 'Test wallet for schema validation',
+                    created_by: userData.id,
+                    created_at: new Date().toISOString(),
+                    is_archived: false,
+                    archived_at: null
+                };
+
+                addResult('wallet-results', `
+                    <strong>测试数据:</strong><br>
+                    <pre>${JSON.stringify(testWalletData, null, 2)}</pre>
+                `, 'info');
+
+                const { data: newWallet, error: walletError } = await supabase
+                    .from('wallets')
+                    .insert([testWalletData])
+                    .select('id, wallet_type')
+                    .single();
+
+                if (walletError) {
+                    addResult('wallet-results', `
+                        <strong>钱包创建失败:</strong><br>
+                        <div class="error">${walletError.message}</div>
+                        <strong>错误代码:</strong> ${walletError.code}<br>
+                        <strong>详细信息:</strong> ${walletError.details || 'N/A'}<br>
+                        <strong>提示:</strong> ${walletError.hint || 'N/A'}
+                    `, 'error');
+                } else {
+                    addResult('wallet-results', `
+                        <strong>钱包创建成功!</strong><br>
+                        <pre>${JSON.stringify(newWallet, null, 2)}</pre>
+                    `, 'success');
+                }
+
+            } catch (error) {
+                addResult('wallet-results', `测试钱包创建时出错: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkRLSPolicies() {
+            clearResults('rls-results');
+            addResult('rls-results', '正在检查 RLS 策略...', 'info');
+
+            try {
+                // 检查 wallets 表的策略
+                const { data: walletsPolicies, error: walletsError } = await supabase
+                    .rpc('get_table_policies', { table_name: 'wallets' });
+
+                if (walletsError) {
+                    addResult('rls-results', `检查 wallets 策略时出错: ${walletsError.message}`, 'error');
+                } else {
+                    addResult('rls-results', `
+                        <strong>Wallets 表策略:</strong><br>
+                        <pre>${JSON.stringify(walletsPolicies, null, 2)}</pre>
+                    `, 'info');
+                }
+
+                // 检查 wallet_members 表的策略
+                const { data: membersPolicies, error: membersError } = await supabase
+                    .rpc('get_table_policies', { table_name: 'wallet_members' });
+
+                if (membersError) {
+                    addResult('rls-results', `检查 wallet_members 策略时出错: ${membersError.message}`, 'error');
+                } else {
+                    addResult('rls-results', `
+                        <strong>Wallet_members 表策略:</strong><br>
+                        <pre>${JSON.stringify(membersPolicies, null, 2)}</pre>
+                    `, 'info');
+                }
+
+            } catch (error) {
+                addResult('rls-results', `检查 RLS 策略时出错: ${error.message}`, 'error');
+            }
+        }
+
+        function generateFixScript() {
+            clearResults('fix-script-results');
+            
+            addResult('fix-script-results', `
+                <strong>⚠️ 重要提示:</strong><br>
+                <div class="warning">
+                    由于 owner_id 字段被 RLS 策略使用，需要先删除策略，修改字段类型，然后重新创建策略。
+                    请使用完整的修复脚本。
+                </div>
+                <br>
+                <strong>完整修复脚本:</strong><br>
+                <p>请使用文件: <code>fix_database_schema_complete.sql</code></p>
+                <p><strong>使用方法:</strong></p>
+                <ol>
+                    <li>登录 <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a></li>
+                    <li>选择项目: glduiypkpsuxzdjscuhq</li>
+                    <li>进入 SQL Editor</li>
+                    <li>复制并执行 <code>fix_database_schema_complete.sql</code> 中的脚本</li>
+                </ol>
+                <p><strong>脚本包含以下步骤:</strong></p>
+                <ul>
+                    <li>1. 检查当前策略</li>
+                    <li>2. 删除所有相关 RLS 策略</li>
+                    <li>3. 删除外键约束</li>
+                    <li>4. 修改字段类型 (integer → uuid)</li>
+                    <li>5. 重新添加外键约束</li>
+                    <li>6. 重新创建 RLS 策略</li>
+                    <li>7. 验证修复结果</li>
+                </ul>
+            `, 'info');
+        }
+
+        // 页面加载时自动检查
+        window.addEventListener('load', () => {
+            addResult('schema-results', '页面已加载，点击按钮开始检查', 'info');
+        });
+    </script>
+</body>
+</html>

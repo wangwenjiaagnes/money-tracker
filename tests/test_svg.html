@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SVG文件测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .svg-test {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .svg-test img {
+            margin-right: 10px;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>SVG文件加载测试</h1>
+    
+    <div class="test-container">
+        <h2>测试SVG文件加载</h2>
+        <div id="svg-tests"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>网络请求状态</h2>
+        <div id="network-status"></div>
+    </div>
+
+    <script>
+        const svgFiles = [
+            'undo.svg',
+            'complete.svg', 
+            'delete.svg',
+            'edit.svg',
+            'view.svg',
+            'add.svg',
+            'home.svg',
+            'analysis.svg',
+            'settings.svg',
+            'close.svg',
+            'copy.svg'
+        ];
+
+        function testSvgFile(filename) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve({ success: true, filename });
+                img.onerror = () => resolve({ success: false, filename });
+                img.src = `assets/svg/${filename}?v=2&t=${Date.now()}`;
+            });
+        }
+
+        async function runTests() {
+            const testsContainer = document.getElementById('svg-tests');
+            const networkContainer = document.getElementById('network-status');
+            
+            // 测试每个SVG文件
+            for (const filename of svgFiles) {
+                const result = await testSvgFile(filename);
+                const testDiv = document.createElement('div');
+                testDiv.className = 'svg-test';
+                
+                const status = result.success ? 
+                    '<span class="status success">✓ 成功</span>' : 
+                    '<span class="status error">✗ 失败</span>';
+                
+                testDiv.innerHTML = `
+                    <img src="assets/svg/${filename}?v=2" alt="${filename}" width="16" height="16" 
+                         onerror="this.style.display='none'">
+                    <span>${filename}</span>
+                    ${status}
+                `;
+                
+                testsContainer.appendChild(testDiv);
+            }
+
+            // 测试网络请求
+            try {
+                const response = await fetch('assets/svg/undo.svg?v=2');
+                const networkDiv = document.createElement('div');
+                networkDiv.innerHTML = `
+                    <div class="svg-test">
+                        <span>undo.svg 网络请求:</span>
+                        <span class="status ${response.ok ? 'success' : 'error'}">
+                            ${response.ok ? '✓ 成功' : '✗ 失败'} (${response.status})
+                        </span>
+                    </div>
+                `;
+                networkContainer.appendChild(networkDiv);
+            } catch (error) {
+                const networkDiv = document.createElement('div');
+                networkDiv.innerHTML = `
+                    <div class="svg-test">
+                        <span>网络请求错误:</span>
+                        <span class="status error">✗ ${error.message}</span>
+                    </div>
+                `;
+                networkContainer.appendChild(networkDiv);
+            }
+        }
+
+        // 页面加载完成后运行测试
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Format Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        .test-value {
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Number Format Test</h1>
+        <p>测试数字格式化功能 - 小于1000显示完整值，大于等于1000显示紧凑格式，hover显示完整值</p>
+        
+        <div class="test-item">
+            <div>原始值: 999.99</div>
+            <div class="test-value" id="test1"></div>
+        </div>
+        
+        <div class="test-item">
+            <div>原始值: 1234.56</div>
+            <div class="test-value" id="test2"></div>
+        </div>
+        
+        <div class="test-item">
+            <div>原始值: 12345.67</div>
+            <div class="test-value" id="test3"></div>
+        </div>
+        
+        <div class="test-item">
+            <div>原始值: 123456.78</div>
+            <div class="test-value" id="test4"></div>
+        </div>
+        
+        <div class="test-item">
+            <div>原始值: 1234567.89</div>
+            <div class="test-value" id="test5"></div>
+        </div>
+        
+        <div class="test-item">
+            <div>原始值: 12345678.90</div>
+            <div class="test-value" id="test6"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script type="module">
+        import { formatCompactWithTitle } from './assets/js/numberFormat.js';
+        
+        // 测试数据
+        const testValues = [
+            999.99,
+            1234.56,
+            12345.67,
+            123456.78,
+            1234567.89,
+            12345678.90
+        ];
+        
+        // 应用格式化
+        testValues.forEach((value, index) => {
+            const element = document.getElementById(`test${index + 1}`);
+            element.innerHTML = formatCompactWithTitle(value);
+        });
+    </script>
+</body>
+</html>

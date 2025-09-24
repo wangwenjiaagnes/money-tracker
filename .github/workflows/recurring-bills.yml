@@ -1,0 +1,19 @@
+name: Run Recurring Bills
+
+on:
+  schedule:
+    # 每天凌晨 2 点执行（UTC 时间）
+    - cron: '0 2 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  run-recurring-bills:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Supabase Edge Function
+        run: |
+          curl -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/recurring-bill-runner" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "run_recurring_bills"}'

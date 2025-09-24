@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Preferences Test - Money Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 User Preferences Test</h1>
+        <p>测试localStorage用户偏好功能</p>
+
+        <!-- 加载配置文件 -->
+        <script src="../assets/js/config.js"></script>
+
+        <div class="test-section">
+            <h3>💰 币种偏好测试</h3>
+            <div class="form-group">
+                <label for="currencyTest">选择币种:</label>
+                <select id="currencyTest">
+                    <option value="">请选择币种</option>
+                </select>
+            </div>
+            <button onclick="testCurrencySave()">保存币种偏好</button>
+            <button onclick="testCurrencyLoad()">加载币种偏好</button>
+            <button onclick="clearCurrencyPreference()">清除币种偏好</button>
+            <div id="currencyResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📂 分类偏好测试</h3>
+            <div class="form-group">
+                <label for="categoryTest">选择分类ID:</label>
+                <input type="text" id="categoryTest" placeholder="输入分类ID (例如: 123)">
+            </div>
+            <button onclick="testCategorySave()">保存分类偏好</button>
+            <button onclick="testCategoryLoad()">加载分类偏好</button>
+            <button onclick="clearCategoryPreference()">清除分类偏好</button>
+            <div id="categoryResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 类型偏好测试</h3>
+            <div class="form-group">
+                <label for="typeTest">选择类型:</label>
+                <select id="typeTest">
+                    <option value="">请选择类型</option>
+                    <option value="expense">支出 (Expense)</option>
+                    <option value="income">收入 (Income)</option>
+                </select>
+            </div>
+            <button onclick="testTypeSave()">保存类型偏好</button>
+            <button onclick="testTypeLoad()">加载类型偏好</button>
+            <button onclick="clearTypePreference()">清除类型偏好</button>
+            <div id="typeResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧹 清除所有偏好</h3>
+            <button onclick="clearAllPreferences()">清除所有用户偏好</button>
+            <div id="clearAllResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 当前localStorage状态</h3>
+            <button onclick="showLocalStorageStatus()">显示localStorage状态</button>
+            <div id="localStorageStatus" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化币种选择器
+        function initializeCurrencyTest() {
+            const currencySelect = document.getElementById('currencyTest');
+            const currencies = APP_CONFIG.getCurrencies();
+            
+            currencies.forEach(currency => {
+                const option = document.createElement('option');
+                option.value = currency.code;
+                option.textContent = `${currency.code} - ${currency.name}`;
+                currencySelect.appendChild(option);
+            });
+        }
+
+        // 币种偏好测试
+        function testCurrencySave() {
+            const currency = document.getElementById('currencyTest').value;
+            if (!currency) {
+                showResult('currencyResult', '请先选择币种', 'error');
+                return;
+            }
+            
+            APP_CONFIG.userPreferences.saveLastCurrency(currency);
+            showResult('currencyResult', `币种偏好已保存: ${currency}`, 'success');
+        }
+
+        function testCurrencyLoad() {
+            const saved = APP_CONFIG.userPreferences.getLastCurrency();
+            if (saved) {
+                document.getElementById('currencyTest').value = saved;
+                showResult('currencyResult', `加载币种偏好: ${saved}`, 'success');
+            } else {
+                showResult('currencyResult', '没有保存的币种偏好', 'error');
+            }
+        }
+
+        function clearCurrencyPreference() {
+            localStorage.removeItem(APP_CONFIG.userPreferences.keys.lastCurrency);
+            document.getElementById('currencyTest').value = '';
+            showResult('currencyResult', '币种偏好已清除', 'success');
+        }
+
+        // 分类偏好测试
+        function testCategorySave() {
+            const category = document.getElementById('categoryTest').value;
+            if (!category) {
+                showResult('categoryResult', '请先输入分类ID', 'error');
+                return;
+            }
+            
+            APP_CONFIG.userPreferences.saveLastCategory(category);
+            showResult('categoryResult', `分类偏好已保存: ${category}`, 'success');
+        }
+
+        function testCategoryLoad() {
+            const saved = APP_CONFIG.userPreferences.getLastCategory();
+            if (saved) {
+                document.getElementById('categoryTest').value = saved;
+                showResult('categoryResult', `加载分类偏好: ${saved}`, 'success');
+            } else {
+                showResult('categoryResult', '没有保存的分类偏好', 'error');
+            }
+        }
+
+        function clearCategoryPreference() {
+            localStorage.removeItem(APP_CONFIG.userPreferences.keys.lastCategory);
+            document.getElementById('categoryTest').value = '';
+            showResult('categoryResult', '分类偏好已清除', 'success');
+        }
+
+        // 类型偏好测试
+        function testTypeSave() {
+            const type = document.getElementById('typeTest').value;
+            if (!type) {
+                showResult('typeResult', '请先选择类型', 'error');
+                return;
+            }
+            
+            APP_CONFIG.userPreferences.saveLastType(type);
+            showResult('typeResult', `类型偏好已保存: ${type}`, 'success');
+        }
+
+        function testTypeLoad() {
+            const saved = APP_CONFIG.userPreferences.getLastType();
+            if (saved) {
+                document.getElementById('typeTest').value = saved;
+                showResult('typeResult', `加载类型偏好: ${saved}`, 'success');
+            } else {
+                showResult('typeResult', '没有保存的类型偏好', 'error');
+            }
+        }
+
+        function clearTypePreference() {
+            localStorage.removeItem(APP_CONFIG.userPreferences.keys.lastType);
+            document.getElementById('typeTest').value = '';
+            showResult('typeResult', '类型偏好已清除', 'success');
+        }
+
+        // 清除所有偏好
+        function clearAllPreferences() {
+            APP_CONFIG.userPreferences.clearAll();
+            document.getElementById('currencyTest').value = '';
+            document.getElementById('categoryTest').value = '';
+            document.getElementById('typeTest').value = '';
+            showResult('clearAllResult', '所有用户偏好已清除', 'success');
+        }
+
+        // 显示localStorage状态
+        function showLocalStorageStatus() {
+            const status = {};
+            Object.entries(APP_CONFIG.userPreferences.keys).forEach(([key, storageKey]) => {
+                status[key] = localStorage.getItem(storageKey);
+            });
+            
+            const statusDiv = document.getElementById('localStorageStatus');
+            statusDiv.innerHTML = `<pre>${JSON.stringify(status, null, 2)}</pre>`;
+            statusDiv.className = 'result';
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCurrencyTest();
+            console.log('User Preferences Test Page Loaded');
+            console.log('APP_CONFIG.userPreferences:', APP_CONFIG.userPreferences);
+        });
+    </script>
+</body>
+</html>

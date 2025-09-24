@@ -1,0 +1,238 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Timezone Manager Test - Money Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23FFD700' stroke='%23B8860B' stroke-width='2'/><text x='50' y='60' text-anchor='middle' font-size='40' fill='%23B8860B'>$</text></svg>" />
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .error {
+            background: #ffeaea;
+            border-left-color: #e53e3e;
+        }
+
+        .success {
+            background: #e6ffe6;
+            border-left-color: #38a169;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 时区管理器测试</h1>
+        
+        <div class="test-section">
+            <h3>1. 基本信息</h3>
+            <button onclick="showUserTimezone()">显示用户时区</button>
+            <div id="timezone-info" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. UTC时间范围转换</h3>
+            <div class="input-group">
+                <label>开始日期:</label>
+                <input type="date" id="start-date" value="2025-08-01">
+            </div>
+            <div class="input-group">
+                <label>结束日期:</label>
+                <input type="date" id="end-date" value="2025-08-31">
+            </div>
+            <button onclick="testUTCDateRange()">测试UTC时间范围转换</button>
+            <div id="utc-range-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 查询交易数据</h3>
+            <div class="input-group">
+                <label>开始日期:</label>
+                <input type="date" id="query-start-date" value="2025-08-01">
+            </div>
+            <div class="input-group">
+                <label>结束日期:</label>
+                <input type="date" id="query-end-date" value="2025-08-31">
+            </div>
+            <button onclick="testQueryTransactions()">测试查询交易</button>
+            <div id="query-result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 时间转换测试</h3>
+            <div class="input-group">
+                <label>UTC时间:</label>
+                <input type="datetime-local" id="utc-time" value="2025-08-20T13:52:00">
+            </div>
+            <button onclick="testTimeConversions()">测试时间转换</button>
+            <div id="conversion-result" class="result"></div>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/timezoneManager.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        const supabase = createClient('https://glduiypkpsuxzdjscuhq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8');
+
+        // 显示用户时区
+        window.showUserTimezone = function() {
+            const result = document.getElementById('timezone-info');
+            const timezone = window.timezoneManager.getUserTimezone();
+            result.textContent = `用户时区: ${timezone}`;
+            result.className = 'result success';
+        };
+
+        // 测试UTC时间范围转换
+        window.testUTCDateRange = async function() {
+            const result = document.getElementById('utc-range-result');
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            try {
+                result.textContent = '正在测试...';
+                result.className = 'result';
+                
+                const utcRange = await window.timezoneManager.getUTCDateRange(startDate, endDate);
+                result.textContent = `✅ 转换成功!\n\n开始日期: ${startDate}\n结束日期: ${endDate}\n\nUTC开始时间: ${utcRange.utc_start}\nUTC结束时间: ${utcRange.utc_end}`;
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 错误: ${error.message}`;
+                result.className = 'result error';
+            }
+        };
+
+        // 测试查询交易
+        window.testQueryTransactions = async function() {
+            const result = document.getElementById('query-result');
+            const startDate = document.getElementById('query-start-date').value;
+            const endDate = document.getElementById('query-end-date').value;
+            
+            try {
+                result.textContent = '正在查询...';
+                result.className = 'result';
+                
+                const transactions = await window.timezoneManager.queryTransactionsByLocalDateRange(
+                    startDate, 
+                    endDate,
+                    {} // 无筛选条件
+                );
+                
+                result.textContent = `✅ 查询成功!\n\n查询范围: ${startDate} 到 ${endDate}\n找到交易数量: ${transactions.length}\n\n前3条交易:\n${transactions.slice(0, 3).map(t => 
+                    `- ${t.amount} ${t.currency} (${t.display_date})`
+                ).join('\n')}`;
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 错误: ${error.message}`;
+                result.className = 'result error';
+            }
+        };
+
+        // 测试时间转换
+        window.testTimeConversions = function() {
+            const result = document.getElementById('conversion-result');
+            const utcTime = document.getElementById('utc-time').value;
+            
+            try {
+                const utcDateTime = new Date(utcTime).toISOString();
+                const localDisplay = window.timezoneManager.convertToLocalTime(utcDateTime);
+                const localString = window.timezoneManager.getLocalTimeString(utcDateTime);
+                
+                result.textContent = `✅ 转换成功!\n\n原始UTC时间: ${utcDateTime}\n\n本地显示时间: ${localDisplay}\n本地时间字符串: ${localString}`;
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 错误: ${error.message}`;
+                result.className = 'result error';
+            }
+        };
+
+        // 页面加载时显示用户时区
+        document.addEventListener('DOMContentLoaded', function() {
+            showUserTimezone();
+        });
+    </script>
+</body>
+</html>

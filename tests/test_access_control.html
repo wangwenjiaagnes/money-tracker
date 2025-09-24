@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 15px; margin: 5px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Access Control Test</h1>
+    
+    <div class="test-section">
+        <h3>1. 配置检查</h3>
+        <div id="config-result" class="result">检查中...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 用户信息</h3>
+        <div id="user-result" class="result">检查中...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 账本权限</h3>
+        <button onclick="testLedgerAccess()">测试账本访问</button>
+        <div id="ledger-result" class="result">点击按钮测试</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. 钱包权限</h3>
+        <button onclick="testWalletAccess()">测试钱包访问</button>
+        <div id="wallet-result" class="result">点击按钮测试</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. 交易权限</h3>
+        <button onclick="testTransactionAccess()">测试交易访问</button>
+        <div id="transaction-result" class="result">点击按钮测试</div>
+    </div>
+
+    <script src="../assets/js/supabase.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            window.APP_CONFIG.api.supabase.url,
+            window.APP_CONFIG.api.supabase.anonKey
+        );
+
+        // 1. 检查配置
+        function checkConfig() {
+            const config = window.APP_CONFIG;
+            const accessControl = config && config.accessControl;
+            const enabled = accessControl && accessControl.enabled;
+            const fallback = accessControl && accessControl.fallbackShowAll;
+            
+            document.getElementById('config-result').innerHTML = `
+                <strong>访问控制开关:</strong> ${enabled ? '✅ 已启用' : '❌ 未启用'}<br>
+                <strong>回退策略:</strong> ${fallback ? '✅ 已启用' : '❌ 未启用 (无权限用户将看到空状态)'}<br>
+                <strong>配置对象:</strong> <pre>${JSON.stringify(accessControl, null, 2)}</pre>
+            `;
+        }
+
+        // 2. 检查用户信息
+        async function checkUser() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) throw error;
+                
+                if (!user) {
+                    document.getElementById('user-result').innerHTML = '<span class="error">❌ 用户未登录</span>';
+                    return;
+                }
+                
+                // 获取用户在 allowed_users 中的信息
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name, email')
+                    .eq('email', user.email)
+                    .single();
+                
+                if (userError) throw userError;
+                
+                document.getElementById('user-result').innerHTML = `
+                    <strong>认证用户:</strong> ${user.email}<br>
+                    <strong>用户ID:</strong> ${userData.id}<br>
+                    <strong>显示名称:</strong> ${userData.display_name || 'N/A'}<br>
+                    <strong>Auth ID:</strong> ${user.id}
+                `;
+            } catch (error) {
+                document.getElementById('user-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 3. 测试账本访问
+        async function testLedgerAccess() {
+            try {
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                if (authError) throw authError;
+                if (!user) throw new Error('用户未登录');
+                
+                // 获取用户在 allowed_users 中的信息
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id')
+                    .eq('email', user.email)
+                    .single();
+                if (userError) throw userError;
+                
+                // 获取用户有权限的账本
+                const { data: ledgerMembers, error: lmErr } = await supabase
+                    .from('ledger_members')
+                    .select('ledger_id, ledgers(name)')
+                    .eq('user_id', userData.id);
+                if (lmErr) throw lmErr;
+                
+                // 获取所有账本（对比）
+                const { data: allLedgers, error: allErr } = await supabase
+                    .from('ledgers')
+                    .select('id, name')
+                    .eq('is_active', true);
+                if (allErr) throw allErr;
+                
+                document.getElementById('ledger-result').innerHTML = `
+                    <strong>有权限的账本 (${ledgerMembers.length}):</strong><br>
+                    ${ledgerMembers.map(m => `• ${m.ledgers.name} (ID: ${m.ledger_id})`).join('<br>') || '无'}<br><br>
+                    <strong>所有账本 (${allLedgers.length}):</strong><br>
+                    ${allLedgers.map(l => `• ${l.name} (ID: ${l.id})`).join('<br>')}
+                `;
+            } catch (error) {
+                document.getElementById('ledger-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 4. 测试钱包访问
+        async function testWalletAccess() {
+            try {
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                if (authError) throw authError;
+                if (!user) throw new Error('用户未登录');
+                
+                // 个人钱包
+                const { data: personal, error: pErr } = await supabase
+                    .from('wallets')
+                    .select('id, name, wallet_type, owner_id')
+                    .eq('wallet_type', 'personal')
+                    .eq('owner_id', user.id)
+                    .eq('is_archived', false);
+                if (pErr) throw pErr;
+                
+                // 共享钱包
+                const { data: shared, error: sErr } = await supabase
+                    .from('wallets')
+                    .select('id, name, wallet_type, wallet_members!inner(user_id)')
+                    .eq('wallet_type', 'shared')
+                    .eq('wallet_members.user_id', user.id)
+                    .eq('is_archived', false);
+                if (sErr) throw sErr;
+                
+                // 所有钱包（对比）
+                const { data: allWallets, error: allErr } = await supabase
+                    .from('wallets')
+                    .select('id, name, wallet_type, owner_id')
+                    .eq('is_archived', false);
+                if (allErr) throw allErr;
+                
+                const accessibleWallets = [...(personal || []), ...(shared || [])];
+                
+                document.getElementById('wallet-result').innerHTML = `
+                    <strong>可访问的钱包 (${accessibleWallets.length}):</strong><br>
+                    ${accessibleWallets.map(w => `• ${w.name} (${w.wallet_type})`).join('<br>') || '无'}<br><br>
+                    <strong>所有钱包 (${allWallets.length}):</strong><br>
+                    ${allWallets.map(w => `• ${w.name} (${w.wallet_type}) - Owner: ${w.owner_id}`).join('<br>')}
+                `;
+            } catch (error) {
+                document.getElementById('wallet-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 5. 测试交易访问
+        async function testTransactionAccess() {
+            try {
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                if (authError) throw authError;
+                if (!user) throw new Error('用户未登录');
+                
+                // 获取用户有权限的账本和钱包
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id')
+                    .eq('email', user.email)
+                    .single();
+                if (userError) throw userError;
+                
+                const { data: ledgerMembers, error: lmErr } = await supabase
+                    .from('ledger_members')
+                    .select('ledger_id')
+                    .eq('user_id', userData.id);
+                if (lmErr) throw lmErr;
+                
+                const { data: personal, error: pErr } = await supabase
+                    .from('wallets')
+                    .select('id')
+                    .eq('wallet_type', 'personal')
+                    .eq('owner_id', user.id)
+                    .eq('is_archived', false);
+                if (pErr) throw pErr;
+                
+                const { data: shared, error: sErr } = await supabase
+                    .from('wallets')
+                    .select('id, wallet_members!inner(user_id)')
+                    .eq('wallet_type', 'shared')
+                    .eq('wallet_members.user_id', user.id)
+                    .eq('is_archived', false);
+                if (sErr) throw sErr;
+                
+                const userLedgerIds = (ledgerMembers || []).map(m => m.ledger_id);
+                const userWalletIds = [...(personal || []).map(w => w.id), ...(shared || []).map(w => w.id)];
+                
+                // 测试交易查询
+                let query = supabase.from('transactions').select('id, ledger_id, wallet_id, amount, notes');
+                
+                if (userLedgerIds.length > 0 || userWalletIds.length > 0) {
+                    const conditions = [];
+                    if (userLedgerIds.length > 0) conditions.push(`ledger_id.in.(${userLedgerIds.join(',')})`);
+                    if (userWalletIds.length > 0) conditions.push(`wallet_id.in.(${userWalletIds.join(',')})`);
+                    if (conditions.length > 0) {
+                        query = query.or(conditions.join(','));
+                    } else {
+                        query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+                    }
+                } else {
+                    query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+                }
+                
+                const { data: transactions, error: tErr } = await query.limit(10);
+                if (tErr) throw tErr;
+                
+                // 对比：所有交易
+                const { data: allTransactions, error: allTErr } = await supabase
+                    .from('transactions')
+                    .select('id, ledger_id, wallet_id, amount, notes')
+                    .limit(10);
+                if (allTErr) throw allTErr;
+                
+                document.getElementById('transaction-result').innerHTML = `
+                    <strong>可访问的交易 (${transactions.length}):</strong><br>
+                    ${transactions.map(t => `• ${t.notes || 'No notes'} (Ledger: ${t.ledger_id}, Wallet: ${t.wallet_id})`).join('<br>') || '无'}<br><br>
+                    <strong>所有交易 (${allTransactions.length}):</strong><br>
+                    ${allTransactions.map(t => `• ${t.notes || 'No notes'} (Ledger: ${t.ledger_id}, Wallet: ${t.wallet_id})`).join('<br>')}
+                `;
+            } catch (error) {
+                document.getElementById('transaction-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            checkConfig();
+            checkUser();
+        };
+    </script>
+</body>
+</html>

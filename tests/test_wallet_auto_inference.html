@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Auto Inference Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .wallet-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Wallet Auto Inference Test</h1>
+    <p>This test verifies that reimbursement_status and payer_id are automatically inferred from wallet type.</p>
+
+    <div class="test-container">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Available Wallets</h2>
+        <div id="wallet-list"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Actions</h2>
+        <button onclick="loadWallets()">Load Wallets</button>
+        <button onclick="testInference()">Test Inference Logic</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+
+        // Supabase配置
+        const supabaseUrl = 'https://glduiypkpsuxzdjscuhq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXP';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let wallets = [];
+
+        // 根据wallet类型自动推断reimbursement_status和payer_id
+        async function inferReimbursementAndPayer(walletId) {
+            try {
+                const wallet = await getWalletById(walletId);
+                if (!wallet) {
+                    return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+                }
+
+                if (wallet.wallet_type === 'shared') {
+                    // Shared wallet: reimbursement_status = 'not_needed', payer_id = null
+                    return { 
+                        reimbursement_status: 'not_needed', 
+                        payer_id: null, 
+                        payer_name: null 
+                    };
+                } else if (wallet.wallet_type === 'personal') {
+                    // Personal wallet: reimbursement_status = 'pending', payer_id = owner_id
+                    const payerName = await getPayerNameById(wallet.owner_id);
+                    return { 
+                        reimbursement_status: 'pending', 
+                        payer_id: wallet.owner_id, 
+                        payer_name: payerName 
+                    };
+                } else {
+                    // Default case
+                    return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+                }
+            } catch (e) {
+                console.error('Error inferring reimbursement and payer:', e);
+                return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+            }
+        }
+
+        // 根据用户ID获取用户显示名称
+        async function getPayerNameById(userId) {
+            try {
+                if (!userId) return null;
+                const { data, error } = await supabase
+                    .from('allowed_users')
+                    .select('display_name, email')
+                    .eq('id', userId)
+                    .single();
+                if (error) throw error;
+                return data.display_name || data.email;
+            } catch (e) {
+                console.error('Error getting payer name:', e);
+                return null;
+            }
+        }
+
+        async function getWalletById(walletId) {
+            try {
+                const { data, error } = await supabase
+                    .from('wallets')
+                    .select('id, balance, currency, name, wallet_type, owner_id')
+                    .eq('id', walletId)
+                    .single();
+                if (error) throw error;
+                return data;
+            } catch (e) {
+                console.error('getWalletById error:', e);
+                return null;
+            }
+        }
+
+        async function loadWallets() {
+            try {
+                addResult('Loading wallets...', 'info');
+                
+                const { data: walletsData, error } = await supabase
+                    .from('wallets')
+                    .select('id, name, currency, wallet_type, owner_id')
+                    .eq('is_archived', false)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                wallets = walletsData;
+                
+                const walletListDiv = document.getElementById('wallet-list');
+                walletListDiv.innerHTML = '';
+                
+                wallets.forEach(wallet => {
+                    const walletDiv = document.createElement('div');
+                    walletDiv.className = 'wallet-info';
+                    walletDiv.innerHTML = `
+                        <h4>${wallet.name} (${wallet.currency})</h4>
+                        <p><strong>Type:</strong> ${wallet.wallet_type}</p>
+                        <p><strong>Owner ID:</strong> ${wallet.owner_id || 'None'}</p>
+                        <p><strong>Wallet ID:</strong> ${wallet.id}</p>
+                    `;
+                    walletListDiv.appendChild(walletDiv);
+                });
+
+                addResult(`Loaded ${wallets.length} wallets successfully`, 'success');
+            } catch (error) {
+                addResult(`Error loading wallets: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInference() {
+            if (wallets.length === 0) {
+                addResult('Please load wallets first', 'error');
+                return;
+            }
+
+            addResult('Testing inference logic...', 'info');
+
+            for (const wallet of wallets) {
+                try {
+                    const inferred = await inferReimbursementAndPayer(wallet.id);
+                    
+                    const expectedStatus = wallet.wallet_type === 'shared' ? 'not_needed' : 'pending';
+                    const expectedPayerId = wallet.wallet_type === 'personal' ? wallet.owner_id : null;
+                    
+                    const statusCorrect = inferred.reimbursement_status === expectedStatus;
+                    const payerCorrect = inferred.payer_id === expectedPayerId;
+                    
+                    if (statusCorrect && payerCorrect) {
+                        addResult(`✅ ${wallet.name}: Correct inference - Status: ${inferred.reimbursement_status}, Payer: ${inferred.payer_name || 'None'}`, 'success');
+                    } else {
+                        addResult(`❌ ${wallet.name}: Incorrect inference - Expected Status: ${expectedStatus}, Got: ${inferred.reimbursement_status}; Expected Payer: ${expectedPayerId}, Got: ${inferred.payer_id}`, 'error');
+                    }
+                } catch (error) {
+                    addResult(`❌ ${wallet.name}: Error during inference - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function addResult(message, type) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.textContent = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+
+        // 使函数全局可用
+        window.loadWallets = loadWallets;
+        window.testInference = testInference;
+        window.clearResults = clearResults;
+
+        // 自动加载wallets
+        loadWallets();
+    </script>
+</body>
+</html>

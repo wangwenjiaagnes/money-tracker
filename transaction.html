@@ -1,0 +1,3217 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>New Transaction - Money Tracker</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/png" href="assets/png/app_icon.png" />
+    <link rel="shortcut icon" type="image/png" href="assets/png/app_icon.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="assets/png/app_icon.png" />
+    <link rel="apple-touch-icon-precomposed" href="assets/png/app_icon.png" />
+    
+    <!-- Android Web App Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Money Tracker" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding-bottom: 120px;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0 20px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 60px;
+            justify-content: center;
+        }
+
+        .nav-back {
+            color: #667eea;
+        }
+
+        .nav-back:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-save {
+            color: #667eea;
+        }
+
+        .nav-save:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-save:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .nav-save:disabled:hover {
+            background: none;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        .nav-text {
+            font-size: 16px;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .form-textarea::placeholder {
+            font-weight: normal;
+            color: #999;
+        }
+
+        /* 美化下拉菜单 */
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        /* 确保在所有浏览器中隐藏默认下拉箭头 */
+        .form-select::-ms-expand {
+            display: none;
+        }
+
+        .form-select:hover {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-select option[disabled] {
+            color: #999;
+            font-style: italic;
+            background-color: #f8f9fa;
+        }
+
+        .form-select option:not([disabled]) {
+            color: #333;
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        .form-select option:not([disabled]):hover {
+            background-color: #667eea;
+            color: white;
+        }
+
+        /* View模式下的禁用状态样式 */
+        .form-input:disabled,
+        .form-select:disabled,
+        .form-textarea:disabled {
+            background: rgba(248, 249, 250, 0.8);
+            border-color: rgba(200, 200, 200, 0.5);
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* 确保禁用状态下的下拉框样式正确 */
+        .form-select:disabled {
+            background-color: rgba(248, 249, 250, 0.8) !important;
+        }
+
+        .form-input:disabled:focus,
+        .form-select:disabled:focus,
+        .form-textarea:disabled:focus {
+            border-color: rgba(200, 200, 200, 0.5);
+            box-shadow: none;
+        }
+
+        /* 禁用状态下的下拉箭头样式 */
+        .form-select:disabled {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ccc' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 12px center !important;
+            background-size: 16px !important;
+        }
+
+        /* 禁用状态下的复选框样式 */
+        input[type="checkbox"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 禁用状态下的开关样式 */
+        .switch input:disabled + .slider {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* View模式下的表单整体样式 */
+        form[style*="pointer-events: none"] {
+            position: relative;
+        }
+
+        /* 金额和货币行布局 */
+        .amount-currency-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* 货币下拉框宽度限制 */
+        .amount-currency-row .form-select {
+            min-width: 80px;
+            max-width: 100px;
+            flex-shrink: 0;
+        }
+
+        /* 金额输入框 - 与 Notes 字段风格一致 */
+        .amount-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #667eea;
+            text-align: right;
+            transition: all 0.3s ease;
+        }
+
+        .amount-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        /* 开关样式 */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .switch-container:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .switch-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #667eea;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .exchange-rates {
+            padding: 12px 0;
+            margin-bottom: 24px;
+        }
+
+        .rate-display {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .rate-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 2px;
+        }
+
+        .rate-amount {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .rate-info {
+            color: #666;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .transaction-meta {
+            margin-top: 16px;
+            padding: 12px;
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .meta-info:last-child {
+            margin-bottom: 0;
+        }
+
+        .meta-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .meta-value {
+            color: #495057;
+            font-family: monospace;
+        }
+
+        /* 成功提示弹窗 */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .success-modal.show .success-content {
+            transform: scale(1);
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+            color: white;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .success-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+
+        /* Custom Alert Modal Styles (from home.html) */
+        .custom-modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-modal.show {
+            display: flex;
+        }
+
+        .custom-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 0;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .custom-modal-header {
+            padding: 24px 24px 16px 24px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .custom-modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .custom-modal-body {
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .custom-modal-message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .custom-modal-actions {
+            padding: 16px 24px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .custom-modal-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .custom-modal-btn-primary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .custom-modal-btn-primary:hover {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        /* 错误提示弹窗 */
+        .error-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .error-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .error-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .error-modal.show .error-content {
+            transform: scale(1);
+        }
+
+        .error-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+            color: white;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .error-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+
+        .loading {
+            color: #667eea;
+            font-style: italic;
+        }
+
+
+
+
+
+
+
+
+
+
+        /* 确保日期时间控件在移动端居中，但文字居左对齐 */
+        .form-input[type="datetime-local"] {
+            text-align: left;
+        }
+
+        /* 移动端Notes输入框优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .amount-currency-row {
+                flex-direction: row;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .amount-input {
+                border-color: #667eea;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            }
+
+            /* 移动端汇率显示优化 */
+            .rate-display {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .rate-amount {
+                font-size: 14px;
+            }
+
+            .rate-info {
+                font-size: 11px;
+            }
+
+            /* 确保日期时间控件在移动端文字居左 */
+            .form-input[type="datetime-local"] {
+                text-align: left;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            /* Notes输入框激活时的样式 */
+            .notes-active {
+                padding-bottom: 200px;
+            }
+
+            .notes-active .fixed-bottom {
+                bottom: 200px;
+            }
+
+            /* 移动端成功弹窗调整 */
+            .success-content {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+        }
+
+        /* 底部按钮样式 */
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+
+
+        .btn-save {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: none;
+            box-shadow: 0 1px 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-save:hover {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 模式切换按钮样式 */
+        .nav-mode-toggle {
+            color: #667eea;
+        }
+
+        .nav-mode-toggle:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* 移动端按钮优化 */
+        @media (max-width: 768px) {
+            .form-actions {
+                gap: 12px;
+                margin-top: 24px;
+                padding-top: 20px;
+            }
+
+            .btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="nav-bar">
+                <button type="button" class="nav-btn nav-back" onclick="window.location.href='home.html'">
+                    <span class="nav-text">Back</span>
+                </button>
+                <div class="nav-title" id="pageTitle">New Transaction</div>
+                <button type="button" class="nav-btn nav-mode-toggle" id="modeToggleBtn" style="display: none;">
+                    <span class="nav-text" id="modeToggleText"></span>
+                </button>
+            </div>
+        </div>
+
+        <form id="transactionForm">
+            <!-- Ledger Name 和 Transaction Date 并排 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <select class="form-select" id="ledgerName" name="ledgerName" required>
+                        <option value="" disabled>Ledger Name</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input class="form-input" type="datetime-local" id="transactionDate" name="transactionDate"
+                        required>
+                </div>
+            </div>
+
+            <!-- Type 和 Category 并排 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <select class="form-select" id="type" name="type" required>
+                        <option value="" disabled>Type</option>
+                        <option value="expense" selected>Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="" disabled>Category</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Wallet 下拉框（位于 Amount 和 Currency 上方） -->
+            <div class="form-group">
+                <select class="form-select" id="wallet" name="wallet" required>
+                    <option value="" disabled>Wallet</option>
+                </select>
+            </div>
+
+            <!-- Amount 部分 - 添加输入限制 -->
+            <div class="form-group">
+                <div class="amount-currency-row">
+                    <input class="form-input amount-input" type="text" id="amount" name="amount" required placeholder=""
+                        inputmode="decimal">
+                    <select class="form-select" id="currency" name="currency" required>
+                        <!-- 币种选项将通过JavaScript动态生成 -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Exchange Rates 部分 - 上下结构 -->
+            <div class="exchange-rates">
+                <div class="rate-display">
+                    <div class="rate-item">
+                        <div class="rate-amount" id="sgdDisplay">S$ 0.00</div>
+                        <div class="rate-info" id="sgdInfo">@1.00</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-amount" id="cnyDisplay">¥ 0.00</div>
+                        <div class="rate-info" id="cnyInfo">@5.59</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-amount" id="usdDisplay">$ 0.00</div>
+                        <div class="rate-info" id="usdInfo">@0.78</div>
+                    </div>
+                    <div class="rate-item">
+                        <div class="rate-amount" id="myrDisplay">RM 0.00</div>
+                        <div class="rate-info" id="myrInfo">@3.29</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reimbursement 和 Payer 并排 -->
+            <!-- Reimbursable and Payer fields are now automatically inferred from wallet type -->
+            <!-- Hidden fields for backward compatibility -->
+            <input type="hidden" id="reimbursement" name="reimbursement">
+            <input type="hidden" id="payer" name="payer">
+
+            <!-- Notes 放在最下面 -->
+            <div class="form-group">
+                <textarea class="form-textarea" id="notes" name="notes" rows="3" maxlength="300"
+                    placeholder="Add a note (optional)"></textarea>
+                <div class="char-count"><span id="charCount">0</span>/<span id="charMax">300</span></div>
+            </div>
+
+            <!-- 创建和修改时间信息 -->
+            <div class="transaction-meta" id="transactionMeta" style="display: none;">
+                <div class="meta-info">
+                    <span class="meta-value" id="createdInfo"></span>
+                </div>
+                <div class="meta-info">
+                    <span class="meta-value" id="modifiedInfo"></span>
+                </div>
+                <div class="meta-info" id="reimbursementInfo" style="display: none;">
+                    <span class="meta-value" id="reimbursementInfoText"></span>
+                </div>
+                <div class="meta-info" id="reimbursementCancelInfo" style="display: none;">
+                    <span class="meta-value" id="reimbursementCancelInfoText"></span>
+                </div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-save">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 成功提示弹窗 -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">✓</div>
+            <div class="success-title">Success!</div>
+            <div class="success-message">Transaction saved successfully!</div>
+            <button class="success-btn" onclick="window.location.href='home.html'">Continue</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal (from home.html) -->
+    <div id="custom-alert-modal" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 class="custom-modal-title" id="alert-title">Notice</h3>
+            </div>
+            <div class="custom-modal-body">
+                <p class="custom-modal-message" id="alert-message">Operation completed.</p>
+            </div>
+            <div class="custom-modal-actions">
+                <button class="custom-modal-btn custom-modal-btn-primary" id="alert-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误提示弹窗 -->
+    <div class="error-modal" id="errorModal">
+        <div class="error-content">
+            <div class="error-icon">⚠</div>
+            <div class="error-title">Error</div>
+            <div class="error-message" id="errorMessage">Please fill in all required fields.</div>
+            <button class="error-btn" onclick="hideErrorModal()">OK</button>
+        </div>
+    </div>
+
+
+    <script src="assets/js/config.js?v=1.0.1"></script>
+    <script src="assets/js/timezoneManager.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        import { formatCompactWithTitle, applyNumberFormat } from './assets/js/numberFormat.js';
+
+        const supabase = createClient('https://glduiypkpsuxzdjscuhq.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8');
+
+        // 初始化时区管理器
+        window.timezoneManager = new TimezoneManager(supabase);
+
+        // 检查页面模式
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const editTransactionId = urlParams.get('id');
+        const isEditMode = mode === 'edit' && editTransactionId;
+        const isViewMode = mode === 'view' && editTransactionId;
+
+        // 存储原始值用于比较变化
+        let originalValues = {
+            amount: null,            // 金额（原钱包币种）
+            currency: null,          // 原钱包币种
+            transactionDate: null,
+            wallet_id: null,         // 原钱包ID
+            type: null               // 原交易类型
+        };
+
+
+
+
+
+
+
+        // 字符计数
+        const notesTextarea = document.getElementById('notes');
+        const charCount = document.getElementById('charCount');
+
+        notesTextarea.addEventListener('input', function () {
+            charCount.textContent = this.value.length;
+        });
+
+        // 显示成功弹窗
+        window.showSuccessModal = function() {
+            const modal = document.getElementById('successModal');
+            modal.classList.add('show');
+        }
+
+
+        // 显示错误弹窗
+        window.showErrorModal = function(message) {
+            const modal = document.getElementById('errorModal');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            modal.classList.add('show');
+        }
+
+        // 隐藏错误弹窗
+        window.hideErrorModal = function() {
+            const modal = document.getElementById('errorModal');
+            modal.classList.remove('show');
+        }
+
+        // Custom alert function (from home.html)
+        function showCustomAlert(title, message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-alert-modal');
+                const titleEl = document.getElementById('alert-title');
+                const messageEl = document.getElementById('alert-message');
+                const okBtn = document.getElementById('alert-ok');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                
+                modal.classList.add('show');
+                
+                const handleOk = () => {
+                    modal.classList.remove('show');
+                    cleanup();
+                    resolve();
+                };
+                
+                const handleOutsideClick = (e) => {
+                    if (e.target === modal) {
+                        handleOk();
+                    }
+                };
+                
+                const cleanup = () => {
+                    okBtn.removeEventListener('click', handleOk);
+                    modal.removeEventListener('click', handleOutsideClick);
+                };
+                
+                okBtn.addEventListener('click', handleOk);
+                modal.addEventListener('click', handleOutsideClick);
+            });
+        }
+
+
+
+        // 获取Ledger选项（支持访问控制开关）
+        async function loadLedgers() {
+            try {
+                const useAccessControl = !!(window.APP_CONFIG && window.APP_CONFIG.accessControl && window.APP_CONFIG.accessControl.enabled);
+                let data = [];
+                if (useAccessControl) {
+                    const { data: authData } = await supabase.auth.getUser();
+                    if (!authData || !authData.user) throw new Error('auth: no user');
+                    const authUserId = authData.user.id;
+
+                    // 获取用户在 allowed_users 中的 ID
+                    const { data: userData, error: userError } = await supabase
+                        .from('allowed_users')
+                        .select('id')
+                        .eq('email', authData.user.email)
+                        .single();
+                    if (userError) throw userError;
+                    const currentUserId = userData.id;
+
+                    const { data: ledgers, error } = await supabase
+                        .from('ledgers')
+                        .select('id, name, ledger_members!inner(user_id)')
+                        .eq('is_active', true)
+                        .eq('ledger_members.user_id', currentUserId)
+                        .order('name');
+                    if (error) throw error;
+                    data = ledgers || [];
+                    if (data.length === 0) {
+                        console.log('用户无账本权限，显示空状态');
+                    }
+                } else {
+                    const { data: all, error } = await supabase
+                        .from('ledgers')
+                        .select('id, name')
+                        .eq('is_active', true)
+                        .order('name');
+                    if (error) throw error;
+                    data = all || [];
+                }
+
+                const select = document.getElementById('ledgerName');
+                select.innerHTML = '<option value="" disabled>Ledger Name</option>';
+                data.forEach(ledger => {
+                    const option = document.createElement('option');
+                    option.value = ledger.id;
+                    option.textContent = ledger.name;
+                    select.appendChild(option);
+                });
+                if (data.length > 0) {
+                    select.value = data[0].id;
+                }
+                return data;
+            } catch (error) {
+                console.error('Error loading ledgers:', error);
+                return [];
+            }
+        }
+
+        // 加载钱包选项（支持访问控制开关）
+        async function loadWallets() {
+            try {
+                const useAccessControl = !!(window.APP_CONFIG && window.APP_CONFIG.accessControl && window.APP_CONFIG.accessControl.enabled);
+                let wallets = [];
+                if (useAccessControl) {
+                    const { data: authData } = await supabase.auth.getUser();
+                    if (!authData || !authData.user) throw new Error('auth: no user');
+                    const authUserId = authData.user.id;
+
+                    // 获取用户在 allowed_users 中的 ID
+                    const { data: userData, error: userError } = await supabase
+                        .from('allowed_users')
+                        .select('id')
+                        .eq('email', authData.user.email)
+                        .single();
+                    if (userError) throw userError;
+                    const currentUserId = userData.id;
+
+                    const { data: personal, error: pErr } = await supabase
+                        .from('wallets')
+                        .select('id, name, currency, wallet_type, owner_id')
+                        .eq('is_archived', false)
+                        .eq('wallet_type', 'personal')
+                        .eq('owner_id', currentUserId);
+                    if (pErr) throw pErr;
+
+                    const { data: shared, error: sErr } = await supabase
+                        .from('wallets')
+                        .select('id, name, currency, wallet_type, owner_id, wallet_members!inner(user_id)')
+                        .eq('is_archived', false)
+                        .eq('wallet_type', 'shared')
+                        .eq('wallet_members.user_id', currentUserId);
+                    if (sErr) throw sErr;
+
+                    wallets = [...(personal || []), ...(shared || [])];
+                    if (wallets.length === 0) {
+                        console.log('用户无钱包权限，显示空状态');
+                    }
+                } else {
+                    const { data: all, error } = await supabase
+                        .from('wallets')
+                        .select('id, name, currency, wallet_type, owner_id')
+                        .eq('is_archived', false)
+                        .order('created_at', { ascending: false });
+                    if (error) throw error;
+                    wallets = all || [];
+                }
+
+                const walletSelect = document.getElementById('wallet');
+                walletSelect.innerHTML = '<option value="" disabled>Wallet</option>';
+                wallets.forEach(w => {
+                    const option = document.createElement('option');
+                    option.value = w.id;
+                    option.textContent = `${w.name} (${w.currency})`;
+                    option.setAttribute('data-currency', w.currency);
+                    option.setAttribute('data-wallet-type', w.wallet_type);
+                    option.setAttribute('data-owner-id', w.owner_id || '');
+                    walletSelect.appendChild(option);
+                });
+
+                if (!isEditMode && !isViewMode) {
+                    let lastWalletId = null;
+                    if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.getLastWallet === 'function') {
+                        lastWalletId = APP_CONFIG.userPreferences.getLastWallet();
+                    }
+                    if (lastWalletId && wallets.some(w => w.id === lastWalletId)) {
+                        walletSelect.value = lastWalletId;
+                        const selected = wallets.find(w => w.id === lastWalletId);
+                        document.getElementById('currency').value = selected.currency;
+                        document.getElementById('amount').setAttribute('data-currency', selected.currency);
+                        window.exchangeRatesLoaded = false;
+                        await updateExchangeRates();
+                    }
+                } else if (isEditMode || isViewMode) {
+                    const applyRealWallet = async () => {
+                        if (originalValues.wallet_id) {
+                            walletSelect.value = originalValues.wallet_id;
+                            const selected = wallets.find(w => w.id === originalValues.wallet_id);
+                            if (selected) {
+                                document.getElementById('currency').value = selected.currency;
+                                document.getElementById('amount').setAttribute('data-currency', selected.currency);
+                                window.exchangeRatesLoaded = false;
+                                await updateExchangeRates();
+                            }
+                        }
+                    };
+                    setTimeout(applyRealWallet, 50);
+                }
+
+                return wallets;
+            } catch (error) {
+                console.error('Error loading wallets:', error);
+                return [];
+            }
+        }
+
+        // 获取分类 - 现在需要ledger_id和type两个参数
+        async function getCategories(ledgerId, parentType) {
+            try {
+                // 前置校验：当还没有选择/可用的 ledger 或类型时，直接返回空，避免 400
+                if (!ledgerId || !parentType) {
+                    console.warn('getCategories skipped: missing ledgerId or parentType', { ledgerId, parentType });
+                    return [];
+                }
+                const { data, error } = await supabase
+                    .from('categories')
+                    .select('id, name, emoji, background_color')
+                    .eq('ledger_id', ledgerId)
+                    .eq('parent_type', parentType)
+                    .order('name');
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+                return [];
+            }
+        }
+
+        // 存储用户UUID映射
+        let userUUIDMap = {};
+
+        // 获取用户
+        async function getUsers() {
+            try {
+                const { data, error } = await supabase
+                    .from('allowed_users')
+                    .select('email, display_name, id')
+                    .eq('is_active', true)
+                    .order('display_name');
+
+                if (error) throw error;
+                
+                // 创建email到UUID的映射
+                userUUIDMap = {};
+                data.forEach(user => {
+                    userUUIDMap[user.email] = user.id;
+                });
+                
+                return data || [];
+            } catch (err) {
+                console.error('Error fetching users:', err);
+                return [];
+            }
+        }
+
+        // ===== Wallet helpers =====
+        async function getWalletById(walletId) {
+            try {
+                const { data, error } = await supabase
+                    .from('wallets')
+                    .select('id, balance, currency, name, wallet_type, owner_id')
+                    .eq('id', walletId)
+                    .single();
+                if (error) throw error;
+                return data;
+            } catch (e) {
+                console.error('getWalletById error:', e);
+                return null;
+            }
+        }
+
+        // 根据wallet类型自动推断reimbursement_status和payer_id
+        async function inferReimbursementAndPayer(walletId) {
+            try {
+                const wallet = await getWalletById(walletId);
+                if (!wallet) {
+                    return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+                }
+
+                if (wallet.wallet_type === 'shared') {
+                    // Shared wallet: reimbursement_status = 'not_needed', payer_id = null
+                    return { 
+                        reimbursement_status: 'not_needed', 
+                        payer_id: null, 
+                        payer_name: null 
+                    };
+                } else if (wallet.wallet_type === 'personal') {
+                    // Personal wallet: reimbursement_status = 'pending', payer_id = owner_id
+                    const payerName = await getPayerNameById(wallet.owner_id);
+                    return { 
+                        reimbursement_status: 'pending', 
+                        payer_id: wallet.owner_id, 
+                        payer_name: payerName 
+                    };
+                } else {
+                    // Default case
+                    return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+                }
+            } catch (e) {
+                console.error('Error inferring reimbursement and payer:', e);
+                return { reimbursement_status: 'not_needed', payer_id: null, payer_name: null };
+            }
+        }
+
+        // 根据用户ID获取用户显示名称
+        async function getPayerNameById(userId) {
+            try {
+                if (!userId) return null;
+                const { data, error } = await supabase
+                    .from('allowed_users')
+                    .select('display_name, email')
+                    .eq('id', userId)
+                    .single();
+                if (error) throw error;
+                return data.display_name || data.email;
+            } catch (e) {
+                console.error('Error getting payer name:', e);
+                return null;
+            }
+        }
+
+        async function updateWalletBalanceAndEntry(params) {
+            const { walletId, deltaAmount, referenceId, description, currentUserName, entryType = 'transaction' } = params;
+            try {
+                const wallet = await getWalletById(walletId);
+                if (!wallet) return;
+
+                const currentBalance = parseFloat(wallet.balance || 0);
+                const newBalance = (currentBalance + deltaAmount).toFixed(2);
+
+                // Update wallet balance
+                const { error: wErr } = await supabase
+                    .from('wallets')
+                    .update({ balance: newBalance, last_editor_name: currentUserName, updated_at: new Date().toISOString() })
+                    .eq('id', walletId);
+                if (wErr) throw wErr;
+
+                // Get current user info for wallet entry
+                const currentUser = await getCurrentUserUUID();
+
+                // Insert wallet entry
+                const entry = {
+                    wallet_id: walletId,
+                    entry_type: entryType,
+                    amount: parseFloat(deltaAmount.toFixed(2)),
+                    balance_after: newBalance,
+                    currency: wallet.currency,
+                    reference_id: referenceId,
+                    reference_type: 'transaction',
+                    description: description || 'Transaction update',
+                    created_at: new Date().toISOString(),
+                    created_by: currentUser,
+                    created_by_name: currentUserName
+                };
+                const { error: eErr } = await supabase
+                    .from('wallet_entries')
+                    .insert([entry]);
+                if (eErr) throw eErr;
+            } catch (e) {
+                console.error('updateWalletBalanceAndEntry error:', e);
+            }
+        }
+
+        // 根据email获取UUID
+        async function getPayerUUID(email) {
+            try {
+                if (!email) return null;
+                
+                // 从allowed_users表获取用户的UUID
+                const { data: userData, error } = await supabase
+                    .from('allowed_users')
+                    .select('id')
+                    .eq('email', email)
+                    .single();
+                
+                if (error) {
+                    console.error('Error getting payer UUID:', error);
+                    return null;
+                }
+                
+                return userData.id;
+            } catch (e) {
+                console.error('Error in getPayerUUID:', e);
+                return null;
+            }
+        }
+
+        // 获取当前用户的UUID
+        async function getCurrentUserUUID() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return null;
+                
+                // 从allowed_users表获取用户的UUID
+                const { data: userData, error } = await supabase
+                    .from('allowed_users')
+                    .select('id')
+                    .eq('email', user.email)
+                    .single();
+                
+                if (error) {
+                    console.error('Error getting user UUID:', error);
+                    return null;
+                }
+                
+                return userData.id;
+            } catch (e) {
+                console.error('Error in getCurrentUserUUID:', e);
+                return null;
+            }
+        }
+
+        // 检查数据库中是否有指定日期的汇率
+        async function checkDateRates(baseCurrency, targetDate) {
+            try {
+                // 使用本地时间进行查询，确保时区一致性
+                const dateLocal = new Date(targetDate);
+                const dateStr = dateLocal.getFullYear() + '-' + 
+                    String(dateLocal.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(dateLocal.getDate()).padStart(2, '0');
+
+                const { data, error } = await supabase
+                    .from('exchange_rates')
+                    .select('*')
+                    .eq('base_currency', baseCurrency)
+                    .eq('date', dateStr)
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error checking date rates:', error);
+                    return null;
+                }
+
+                return data && data.length > 0 ? data : null;
+            } catch (err) {
+                console.error('Exception checking date rates:', err);
+                return null;
+            }
+        }
+
+        // 获取指定日期最近的汇率（先找之前的，如果没有再找之后的）
+        async function getNearestRateFromDatabase(fromCurrency, toCurrency, targetDate) {
+            try {
+                // 使用本地时间进行查询，确保时区一致性
+                const dateLocal = new Date(targetDate);
+                const dateStr = dateLocal.getFullYear() + '-' + 
+                    String(dateLocal.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(dateLocal.getDate()).padStart(2, '0');
+
+                // 1. 先尝试获取指定日期或之前最近的汇率
+                const { data: beforeData, error: beforeError } = await supabase
+                    .from('exchange_rates')
+                    .select('rate')
+                    .eq('base_currency', fromCurrency)
+                    .eq('target_currency', toCurrency)
+                    .lte('local_date', dateStr)
+                    .order('local_date', { ascending: false })
+                    .limit(1);
+
+                if (beforeError) {
+                    console.error('Error getting before rate from database:', beforeError);
+                } else if (beforeData && beforeData.length > 0) {
+                    console.log('Found rate from before or on target date:', beforeData[0].rate);
+                    return beforeData[0].rate;
+                }
+
+                // 2. 如果之前没有数据，尝试获取指定日期之后最近的汇率
+                console.log('No rate found before target date, trying after...');
+                
+                const { data: afterData, error: afterError } = await supabase
+                    .from('exchange_rates')
+                    .select('rate')
+                    .eq('base_currency', fromCurrency)
+                    .eq('target_currency', toCurrency)
+                    .gte('local_date', dateStr)
+                    .order('local_date', { ascending: true })
+                    .limit(1);
+
+                if (afterError) {
+                    console.error('Error getting after rate from database:', afterError);
+                    return null;
+                }
+
+                if (afterData && afterData.length > 0) {
+                    console.log('Found rate from after target date:', afterData[0].rate);
+                    return afterData[0].rate;
+                }
+
+                console.log('No rate found before or after target date');
+                return null;
+            } catch (err) {
+                console.error('Exception getting nearest rate from database:', err);
+                return null;
+            }
+        }
+
+        // 保存汇率到数据库
+        async function saveRatesToDatabase(baseCurrency, conversionRates, targetDate = null) {
+            try {
+                const ratesToInsert = [];
+                const now = new Date().toISOString();
+
+                // 确定要使用的日期
+                let dateStr;
+                if (targetDate) {
+                    const dateLocal = new Date(targetDate);
+                    dateStr = dateLocal.getFullYear() + '-' +
+                        String(dateLocal.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(dateLocal.getDate()).padStart(2, '0');
+                } else {
+                    // 如果没有指定日期，使用今天的日期
+                    const todayLocal = new Date();
+                    dateStr = todayLocal.getFullYear() + '-' +
+                        String(todayLocal.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(todayLocal.getDate()).padStart(2, '0');
+                }
+
+                // 保存所有货币组合的汇率到数据库
+                const allCurrencies = ['SGD', 'CNY', 'USD', 'MYR'];
+                
+                // 为每个货币作为baseCurrency，保存到其他货币的汇率
+                for (const currency of allCurrencies) {
+                    for (const targetCurrency of allCurrencies) {
+                        if (currency !== targetCurrency) {
+                            let rate;
+                            
+                            if (currency === baseCurrency) {
+                                // 当前选择的货币，使用API返回的汇率
+                                rate = conversionRates[targetCurrency];
+                            } else if (targetCurrency === baseCurrency) {
+                                // 目标货币是当前选择的货币，计算反向汇率
+                                rate = 1 / conversionRates[currency];
+                            } else {
+                                // 其他货币组合，通过当前货币计算交叉汇率
+                                const rateToBase = conversionRates[currency];
+                                const rateToTarget = conversionRates[targetCurrency];
+                                rate = rateToTarget / rateToBase;
+                            }
+                            
+                            // 限制数值精度，避免溢出
+                            const limitedRate = Math.min(Math.max(parseFloat(rate), 0.000001), 999999.99999999);
+
+                            ratesToInsert.push({
+                                base_currency: currency,
+                                target_currency: targetCurrency,
+                                rate: limitedRate,
+                                local_date: dateStr
+                            });
+                        }
+                    }
+                }
+
+                console.log('Preparing to insert rates:', ratesToInsert.length, 'records');
+
+                // 使用 upsert 避免唯一键冲突
+                const { data, error } = await supabase
+                    .from('exchange_rates')
+                    .upsert(ratesToInsert, { onConflict: 'base_currency,target_currency,local_date' });
+
+                if (error) {
+                    console.error('Error inserting rates:', error);
+                    throw error;
+                }
+
+                console.log(`Successfully saved ${ratesToInsert.length} exchange rates to database`);
+                return true;
+            } catch (err) {
+                console.error('Error saving rates to database:', err);
+                return false;
+            }
+        }
+
+        // 从数据库获取汇率（最新的）
+        async function getRateFromDatabase(fromCurrency, toCurrency) {
+            try {
+                const { data, error } = await supabase
+                    .from('exchange_rates')
+                    .select('rate')
+                    .eq('base_currency', fromCurrency)
+                    .eq('target_currency', toCurrency)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error getting rate from database:', error);
+                    return null;
+                }
+
+                return data && data.length > 0 ? data[0].rate : null;
+            } catch (err) {
+                console.error('Exception getting rate from database:', err);
+                return null;
+            }
+        }
+
+        // 一次性获取指定日期的所有汇率
+        async function getAllExchangeRatesForDate(baseCurrency, targetDate) {
+            try {
+                // 使用本地时间进行查询，确保时区一致性
+                const dateLocal = new Date(targetDate);
+                const dateStr = dateLocal.getFullYear() + '-' +
+                    String(dateLocal.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(dateLocal.getDate()).padStart(2, '0');
+
+                console.log(`Getting all exchange rates for ${baseCurrency} on ${dateStr}`);
+
+                // 判断是否是未来日
+                const today = new Date();
+                const targetDateOnly = new Date(dateLocal.getFullYear(), dateLocal.getMonth(), dateLocal.getDate());
+                const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isFutureDate = targetDateOnly > todayOnly;
+
+                // 如果是未来日，按今日处理
+                let queryDate = dateStr;
+                if (isFutureDate) {
+                    const todayStr = today.getFullYear() + '-' +
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(today.getDate()).padStart(2, '0');
+                    queryDate = todayStr;
+                    console.log(`Future date detected, treating as today: ${queryDate}`);
+                }
+
+                // 1. 先检查数据库中是否有目标日期的汇率
+                const { data: dateRates, error: dateError } = await supabase
+                    .from('exchange_rates')
+                    .select('target_currency, rate')
+                    .eq('base_currency', baseCurrency)
+                    .eq('local_date', queryDate);
+
+                if (dateError) {
+                    console.error('Error checking date rates:', dateError);
+                } else if (dateRates && dateRates.length >= 3) { // 至少要有3个目标货币
+                    console.log('Found exact date rates in database');
+                    const rates = {};
+                    dateRates.forEach(rate => {
+                        rates[rate.target_currency] = rate.rate;
+                    });
+                    // 设置基础货币汇率为1
+                    rates[baseCurrency] = 1;
+                    return rates;
+                }
+
+                // 2. 如果是过去日且没有数据，先尝试往前找和往后找
+                const isPastDate = targetDateOnly < todayOnly;
+                if (isPastDate && !isFutureDate) {
+                    console.log('Past date detected, trying to find nearest historical rates...');
+                    
+                    // 2a. 先往前找（该天之前最近的有数据的日期）
+                    // 先找到最近有数据的日期
+                    const { data: latestDateData, error: latestDateError } = await supabase
+                        .from('exchange_rates')
+                        .select('local_date')
+                        .eq('base_currency', baseCurrency)
+                        .lt('local_date', queryDate)
+                        .order('local_date', { ascending: false })
+                        .limit(1);
+
+                    if (!latestDateError && latestDateData && latestDateData.length > 0) {
+                        const latestDate = latestDateData[0].local_date;
+                        console.log(`Found latest date with rates: ${latestDate}`);
+                        
+                        // 然后查询该日期的所有汇率
+                        const targetCurrencies = ['SGD', 'CNY', 'USD', 'MYR'].filter(c => c !== baseCurrency);
+                        const { data: beforeRates, error: beforeError } = await supabase
+                            .from('exchange_rates')
+                            .select('target_currency, rate')
+                            .eq('base_currency', baseCurrency)
+                            .eq('local_date', latestDate)
+                            .in('target_currency', targetCurrencies);
+
+                        if (!beforeError && beforeRates && beforeRates.length >= targetCurrencies.length) {
+                            console.log(`Using rates from ${latestDate}`);
+                            const rates = {};
+                            beforeRates.forEach(rate => {
+                                rates[rate.target_currency] = rate.rate;
+                            });
+                            rates[baseCurrency] = 1;
+                            return rates;
+                        }
+                    }
+
+                    // 2b. 如果前面没有，再往后找（该天之后最近的有数据的日期）
+                    console.log('No rates found before target date, trying after...');
+                    
+                    // 先找到最近有数据的日期
+                    const { data: earliestDateData, error: earliestDateError } = await supabase
+                        .from('exchange_rates')
+                        .select('local_date')
+                        .eq('base_currency', baseCurrency)
+                        .gt('local_date', queryDate)
+                        .order('local_date', { ascending: true })
+                        .limit(1);
+
+                    if (!earliestDateError && earliestDateData && earliestDateData.length > 0) {
+                        const earliestDate = earliestDateData[0].local_date;
+                        console.log(`Found earliest date with rates: ${earliestDate}`);
+                        
+                        // 然后查询该日期的所有汇率
+                        const targetCurrencies = ['SGD', 'CNY', 'USD', 'MYR'].filter(c => c !== baseCurrency);
+                        const { data: afterRates, error: afterError } = await supabase
+                            .from('exchange_rates')
+                            .select('target_currency, rate')
+                            .eq('base_currency', baseCurrency)
+                            .eq('local_date', earliestDate)
+                            .in('target_currency', targetCurrencies);
+
+                        if (!afterError && afterRates && afterRates.length >= targetCurrencies.length) {
+                            console.log(`Using rates from ${earliestDate}`);
+                            const rates = {};
+                            afterRates.forEach(rate => {
+                                rates[rate.target_currency] = rate.rate;
+                            });
+                            rates[baseCurrency] = 1;
+                            return rates;
+                        }
+                    }
+
+                    console.log('No historical rates found for past date, will call API as last resort');
+                }
+
+                // 3. 如果数据库中没有数据，调用API获取
+                console.log('No rates found in database, calling API...');
+                const { data, error } = await supabase.functions.invoke('exchange-rate', {
+                    body: { baseCurrency: baseCurrency }
+                });
+
+                if (error) {
+                    console.error('Edge function error:', error);
+                    throw error;
+                }
+
+                if (!data || !data.conversionRates) {
+                    throw new Error('Invalid API response');
+                }
+
+                console.log('API response received, saving to database...');
+                // 如果是未来日，保存到今天的日期；否则保存到目标日期
+                const saveDate = isFutureDate ? today : targetDate;
+                const saveSuccess = await saveRatesToDatabase(baseCurrency, data.conversionRates, saveDate);
+
+                if (!saveSuccess) {
+                    console.warn('Failed to save rates to database, but continuing...');
+                }
+
+                // 返回所有汇率
+                const rates = { ...data.conversionRates };
+                rates[baseCurrency] = 1; // 设置基础货币汇率为1
+                return rates;
+
+            } catch (err) {
+                console.error('Error in getAllExchangeRatesForDate:', err);
+                // 回退到硬编码汇率
+                const fallbackRates = {
+                    'SGD': { 'CNY': 5.30000, 'USD': 0.74000, 'MYR': 3.45000 },
+                    'CNY': { 'SGD': 0.18868, 'USD': 0.13962, 'MYR': 0.65094 },
+                    'USD': { 'SGD': 1.35135, 'CNY': 7.16216, 'MYR': 4.66216 },
+                    'MYR': { 'SGD': 0.28986, 'CNY': 1.53623, 'USD': 0.21449 }
+                };
+                
+                const rates = { ...fallbackRates[baseCurrency] };
+                rates[baseCurrency] = 1;
+                return rates;
+            }
+        }
+
+        // 从数据库获取指定日期的汇率
+        async function getRateFromDatabaseByDate(fromCurrency, toCurrency, targetDate) {
+            try {
+                // 使用本地时间进行查询，确保时区一致性
+                const dateLocal = new Date(targetDate);
+                const dateStr = dateLocal.getFullYear() + '-' +
+                    String(dateLocal.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(dateLocal.getDate()).padStart(2, '0');
+
+                const { data, error } = await supabase
+                    .from('exchange_rates')
+                    .select('rate, created_at')
+                    .eq('base_currency', fromCurrency)
+                    .eq('target_currency', toCurrency)
+                    .eq('local_date', dateStr)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error getting rate from database by date:', error);
+                    return null;
+                }
+
+                if (data && data.length > 0) {
+                    console.log(`Found rate for ${dateStr}: ${fromCurrency} to ${toCurrency} = ${data[0].rate} (created: ${data[0].created_at})`);
+                    return data[0].rate;
+                }
+
+                console.log(`No rate found for ${dateStr}: ${fromCurrency} to ${toCurrency}`);
+                return null;
+            } catch (err) {
+                console.error('Error getting rate from database by date:', err);
+                return null;
+            }
+        }
+
+        // 智能汇率获取函数 - 基于交易日期
+        async function getExchangeRate(fromCurrency, toCurrency, transactionDate) {
+            if (fromCurrency === toCurrency) return 1;
+
+            try {
+                // 确保正确解析日期，避免时区问题
+                const targetDate = new Date(transactionDate + ':00'); // 添加秒数以确保完整格式
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // 使用本地日期字符串而不是ISO字符串避免时区问题
+                const targetDateStr = targetDate.getFullYear() + '-' + 
+                    String(targetDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(targetDate.getDate()).padStart(2, '0');
+
+                console.log(`Getting exchange rate for ${fromCurrency} to ${toCurrency} on ${targetDateStr}`);
+
+                // 1. 检查数据库中是否有交易日期的汇率
+                const dateRates = await checkDateRates(fromCurrency, targetDate);
+                if (dateRates && dateRates.length > 0) {
+                    console.log('Found exact date rates in database');
+                    const rate = await getRateFromDatabaseByDate(fromCurrency, toCurrency, targetDate);
+                    if (rate) return rate;
+                }
+
+                // 2. 如果交易日期是今天且无数据，调用API
+                const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+                const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                if (targetDateOnly.getTime() === todayOnly.getTime()) {
+                    console.log('Transaction date is today, calling API...');
+                const { data, error } = await supabase.functions.invoke('exchange-rate', {
+                    body: { baseCurrency: fromCurrency }
+                });
+
+                if (error) {
+                    console.error('Edge function error:', error);
+                    throw error;
+                }
+
+                if (!data || !data.conversionRates) {
+                    throw new Error('Invalid API response');
+                }
+
+                console.log('API response received, saving to database...');
+                    const saveSuccess = await saveRatesToDatabase(fromCurrency, data.conversionRates, transactionDate);
+
+                    if (!saveSuccess) {
+                        console.warn('Failed to save rates to database, but continuing...');
+                    }
+
+                    return data.conversionRates[toCurrency] || 1;
+                }
+
+                // 3. 如果交易日期是过去某天且无数据，取前一个有数据的日期
+                if (targetDateOnly < todayOnly) {
+                    console.log('Transaction date is in the past, getting nearest historical rate...');
+                    const nearestRate = await getNearestRateFromDatabase(fromCurrency, toCurrency, targetDate);
+                    if (nearestRate) {
+                        console.log('Found nearest historical rate:', nearestRate);
+                        return nearestRate;
+                    }
+                }
+
+                // 4. 如果交易日期是未来某天，按照今日处理
+                if (targetDateOnly > todayOnly) {
+                    console.log('Transaction date is in the future, treating as today...');
+                    
+                    // 先检查数据库中是否有今天的汇率
+                    const todayDateStr = today.getFullYear() + '-' + 
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(today.getDate()).padStart(2, '0');
+                    
+                    const { data: todayRates, error: todayError } = await supabase
+                        .from('exchange_rates')
+                        .select('rate')
+                        .eq('base_currency', fromCurrency)
+                        .eq('target_currency', toCurrency)
+                        .eq('local_date', todayDateStr)
+                        .limit(1);
+
+                    if (todayRates && todayRates.length > 0) {
+                        console.log('Found today\'s rate in database, using it for future date');
+                        return todayRates[0].rate;
+                    } else {
+                        // 今天没有数据，调用API
+                        console.log('No today\'s rate in database, calling API...');
+                        const { data, error } = await supabase.functions.invoke('exchange-rate', {
+                            body: { baseCurrency: fromCurrency }
+                        });
+
+                        if (error) {
+                            console.error('Edge function error:', error);
+                            throw error;
+                        }
+
+                        if (!data || !data.conversionRates) {
+                            throw new Error('Invalid API response');
+                        }
+
+                        console.log('API response received, saving to database...');
+                        const saveSuccess = await saveRatesToDatabase(fromCurrency, data.conversionRates, transactionDate);
+
+                        if (!saveSuccess) {
+                            console.warn('Failed to save rates to database, but continuing...');
+                        }
+
+                        return data.conversionRates[toCurrency] || 1;
+                    }
+                }
+
+                // 5. 如果所有方法都失败，回退到硬编码汇率
+                console.log('All methods failed, using hardcoded rates...');
+                const rates = {
+                    'SGD': { 'CNY': 5.30000, 'USD': 0.74000, 'MYR': 3.45000 },
+                    'CNY': { 'SGD': 0.18868, 'USD': 0.13962, 'MYR': 0.65094 },
+                    'USD': { 'SGD': 1.35135, 'CNY': 7.16216, 'MYR': 4.66216 },
+                    'MYR': { 'SGD': 0.28986, 'CNY': 1.53623, 'USD': 0.21449 }
+                };
+                return rates[fromCurrency]?.[toCurrency] || 1;
+
+            } catch (err) {
+                console.error('Error in smart exchange rate function:', err);
+                console.log('Falling back to hardcoded rates...');
+
+                // 回退到硬编码汇率
+                const rates = {
+                    'SGD': { 'CNY': 5.30000, 'USD': 0.74000, 'MYR': 3.45000 },
+                    'CNY': { 'SGD': 0.18868, 'USD': 0.13962, 'MYR': 0.65094 },
+                    'USD': { 'SGD': 1.35135, 'CNY': 7.16216, 'MYR': 4.66216 },
+                    'MYR': { 'SGD': 0.28986, 'CNY': 1.53623, 'USD': 0.21449 }
+                };
+                return rates[fromCurrency]?.[toCurrency] || 1;
+            }
+        }
+
+        // 更新汇率显示函数 - 基于交易日期
+        async function updateExchangeRates() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const currency = document.getElementById('amount').getAttribute('data-currency') || 'SGD';
+            const transactionDate = document.getElementById('transactionDate').value;
+
+            // 只在页面加载时获取汇率，后续只更新显示
+            if (!window.exchangeRatesLoaded) {
+                console.log('Loading exchange rates for the first time...');
+                
+                // 一次性获取所有汇率，避免重复API调用
+                // 如果未设置日期，使用当前本地时间，避免 NaN-NaN-NaN
+                const safeTxDate = transactionDate && transactionDate.trim() !== '' ? transactionDate : (function(){
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const mm = String(now.getMinutes()).padStart(2, '0');
+                    return `${y}-${m}-${d}T${hh}:${mm}`;
+                })();
+                const allRates = await getAllExchangeRatesForDate(currency, safeTxDate);
+                window.sgdRate = allRates.SGD || 1;
+                window.cnyRate = allRates.CNY || 1;
+                window.usdRate = allRates.USD || 1;
+                window.myrRate = allRates.MYR || 1;
+                window.exchangeRatesLoaded = true;
+            }
+
+            // 使用缓存的汇率计算金额并更新显示
+            const sgdAmount = (amount * window.sgdRate);
+            const cnyAmount = (amount * window.cnyRate);
+            const usdAmount = (amount * window.usdRate);
+            const myrAmount = (amount * window.myrRate);
+
+            // 根据当前货币显示对应的汇率（显示时只保留2位小数）
+            if (currency === 'SGD') {
+                // 当前货币是SGD
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@1.00`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@${window.cnyRate.toFixed(2)}`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@${window.usdRate.toFixed(2)}`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@${window.myrRate.toFixed(2)}`;
+            } else if (currency === 'CNY') {
+                // 当前货币是CNY
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@${window.sgdRate.toFixed(2)}`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@1.00`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@${window.usdRate.toFixed(2)}`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@${window.myrRate.toFixed(2)}`;
+            } else if (currency === 'USD') {
+                // 当前货币是USD
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@${window.sgdRate.toFixed(2)}`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@${window.cnyRate.toFixed(2)}`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@1.00`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@${window.myrRate.toFixed(2)}`;
+            } else if (currency === 'MYR') {
+                // 当前货币是MYR
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@${window.sgdRate.toFixed(2)}`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@${window.cnyRate.toFixed(2)}`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@${window.usdRate.toFixed(2)}`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@1.00`;
+            } else {
+                // 其他货币的情况
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@${window.sgdRate.toFixed(2)}`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@${window.cnyRate.toFixed(2)}`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@${window.usdRate.toFixed(2)}`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@${window.myrRate.toFixed(2)}`;
+            }
+        }
+
+        // 仅更新金额显示的函数（不调用API）
+        function updateAmountDisplay() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+
+            if (window.exchangeRatesLoaded) {
+                const sgdAmount = (amount * window.sgdRate);
+                const cnyAmount = (amount * window.cnyRate);
+                const usdAmount = (amount * window.usdRate);
+                const myrAmount = (amount * window.myrRate);
+
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(sgdAmount)}`;
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(cnyAmount)}`;
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(usdAmount)}`;
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(myrAmount)}`;
+            }
+        }
+
+        // 金额输入处理函数
+        function handleAmountInput(event) {
+            const input = event.target;
+            let value = input.value;
+
+            // 只允许数字和小数点
+            value = value.replace(/[^0-9.]/g, '');
+
+            // 确保只有一个小数点
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // 限制小数位数为2位
+            if (parts.length === 2 && parts[1].length > 2) {
+                value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+
+            // 更新输入框的值
+            input.value = value;
+
+            // 更新汇率显示
+            updateAmountDisplay();
+        }
+
+        // 金额失焦时格式化为两位小数
+        function handleAmountBlur(event) {
+            const input = event.target;
+            let value = parseFloat(input.value) || 0;
+
+            // 格式化为两位小数
+            input.value = value.toFixed(2);
+
+            // 更新汇率显示
+            updateAmountDisplay();
+        }
+
+        // 初始化货币选择器
+        function initializeCurrencySelector() {
+            const currencySelect = document.getElementById('currency');
+            const amountInput = document.getElementById('amount');
+
+            // 生成币种选项
+            currencySelect.innerHTML = APP_CONFIG.generateCurrencyOptions();
+            
+            // 创建模式才应用本地偏好；编辑/查看模式呈现真实交易数据
+            if (!isEditMode && !isViewMode) {
+                // 优先使用当前选中钱包的货币，如果没有则使用用户偏好，最后使用货币列表第一个
+                const walletSelect = document.getElementById('wallet');
+                const selectedWalletOption = walletSelect.options[walletSelect.selectedIndex];
+                const walletCurrency = selectedWalletOption ? selectedWalletOption.getAttribute('data-currency') : null;
+                
+                let defaultCurrency = null;
+                
+                // 1. 优先使用钱包货币
+                if (walletCurrency) {
+                    defaultCurrency = walletCurrency;
+                } else {
+                    // 2. 使用用户上次选择的货币
+                    let lastCurrency = null;
+                    if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.getLastCurrency === 'function') {
+                        lastCurrency = APP_CONFIG.userPreferences.getLastCurrency();
+                    }
+                    // 3. 最后使用货币列表第一个
+                    defaultCurrency = lastCurrency || APP_CONFIG.getCurrencyCodes()[0];
+                }
+                
+                if (defaultCurrency) {
+                    currencySelect.value = defaultCurrency;
+                    amountInput.setAttribute('data-currency', defaultCurrency);
+                }
+            }
+
+            // 货币选择变化事件
+            currencySelect.addEventListener('change', async function () {
+                const currency = this.value;
+                amountInput.setAttribute('data-currency', currency);
+                
+                // 保存用户选择到localStorage（添加安全检查）
+                if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.saveLastCurrency === 'function') {
+                    APP_CONFIG.userPreferences.saveLastCurrency(currency);
+                    console.log('币种偏好已保存:', currency);
+                } else {
+                    console.log('币种偏好保存失败: APP_CONFIG.userPreferences.saveLastCurrency 不可用');
+                }
+
+                // 切换货币时重新获取汇率
+                console.log('Currency changed, reloading exchange rates...');
+                window.exchangeRatesLoaded = false;
+                await updateExchangeRates();
+            });
+
+            // 交易日期变化事件
+            document.getElementById('transactionDate').addEventListener('change', async function () {
+                // 日期变化时重新获取汇率
+                console.log('Transaction date changed, reloading exchange rates...');
+                window.exchangeRatesLoaded = false;
+                await updateExchangeRates();
+            });
+        }
+
+        // 绑定钱包变化联动币种
+        function setupWalletChangeHandler() {
+            const walletSelect = document.getElementById('wallet');
+            const currencySelect = document.getElementById('currency');
+            const amountInput = document.getElementById('amount');
+
+            walletSelect.addEventListener('change', async function () {
+                const selectedOption = walletSelect.options[walletSelect.selectedIndex];
+                const walletCurrency = selectedOption.getAttribute('data-currency');
+
+                // 创建模式才写入本地偏好
+                if (!isEditMode && !isViewMode) {
+                    if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.saveLastWallet === 'function') {
+                        APP_CONFIG.userPreferences.saveLastWallet(walletSelect.value);
+                    }
+                }
+
+                // 自动同步币种至钱包币种
+                if (walletCurrency) {
+                    currencySelect.value = walletCurrency;
+                    amountInput.setAttribute('data-currency', walletCurrency);
+                    window.exchangeRatesLoaded = false;
+                    await updateExchangeRates();
+                }
+            });
+        }
+
+        // 显示交易元数据信息
+        function displayTransactionMeta(transaction) {
+            const metaContainer = document.getElementById('transactionMeta');
+            const createdInfo = document.getElementById('createdInfo');
+            const modifiedInfo = document.getElementById('modifiedInfo');
+            const reimbursementInfo = document.getElementById('reimbursementInfo');
+            const reimbursementCancelInfo = document.getElementById('reimbursementCancelInfo');
+            const reimbursementInfoText = document.getElementById('reimbursementInfoText');
+            const reimbursementCancelInfoText = document.getElementById('reimbursementCancelInfoText');
+
+            if (transaction.created_at) {
+                const createdDate = new Date(transaction.created_at);
+                const createdBy = transaction.creator_name || transaction.creator_email || 'Unknown';
+                createdInfo.textContent = `${formatDateTime(createdDate)}         Created by ${createdBy}`;
+            }
+
+            if (transaction.updated_at) {
+                const updatedDate = new Date(transaction.updated_at);
+                const updatedBy = transaction.updated_by || transaction.creator_name || transaction.creator_email || 'Unknown';
+                modifiedInfo.textContent = `${formatDateTime(updatedDate)}         Last modified by ${updatedBy}`;
+            } else {
+                // 如果没有updated_at，使用created_at
+                const createdDate = new Date(transaction.created_at);
+                const createdBy = transaction.creator_name || transaction.creator_email || 'Unknown';
+                modifiedInfo.textContent = `${formatDateTime(createdDate)}         Last modified by ${createdBy}`;
+            }
+
+            // 显示报销信息
+            if (transaction.reimburser_name && transaction.reimbursement_date) {
+                const reimbursementDate = new Date(transaction.reimbursement_date);
+                reimbursementInfoText.textContent = `${formatDateTime(reimbursementDate)}         Reimbursed by ${transaction.reimburser_name}`;
+                reimbursementInfo.style.display = 'block';
+            } else {
+                reimbursementInfo.style.display = 'none';
+            }
+
+            // 显示取消报销信息
+            if (transaction.reimbursement_canceler_name && transaction.reimbursement_canceler_date) {
+                const cancelDate = new Date(transaction.reimbursement_canceler_date);
+                reimbursementCancelInfoText.textContent = `${formatDateTime(cancelDate)}         Reimbursement cancelled by ${transaction.reimbursement_canceler_name}`;
+                reimbursementCancelInfo.style.display = 'block';
+            } else {
+                reimbursementCancelInfo.style.display = 'none';
+            }
+
+            metaContainer.style.display = 'block';
+        }
+
+        // 格式化日期时间 - 显示本地时间
+        function formatDateTime(date) {
+            // 确保使用本地时间
+            const localDate = new Date(date);
+            const year = localDate.getFullYear();
+            const month = String(localDate.getMonth() + 1).padStart(2, '0');
+            const day = String(localDate.getDate()).padStart(2, '0');
+            const hours = String(localDate.getHours()).padStart(2, '0');
+            const minutes = String(localDate.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // 检测关键字段是否发生变化
+        function hasKeyFieldsChanged() {
+            if (!isEditMode || !originalValues.amount) {
+                return true; // 新建模式或没有原始值，需要重新计算
+            }
+
+            const currentAmount = parseFloat(document.getElementById('amount').value) || 0;
+            const currentCurrency = document.getElementById('currency').value;
+            const currentDate = document.getElementById('transactionDate').value;
+
+            const amountChanged = Math.abs(currentAmount - originalValues.amount) > 0.01;
+            const currencyChanged = currentCurrency !== originalValues.currency;
+            const dateChanged = currentDate !== originalValues.transactionDate;
+
+            console.log('字段变化检测:', {
+                amountChanged,
+                currencyChanged,
+                dateChanged,
+                currentAmount,
+                originalAmount: originalValues.amount,
+                currentCurrency,
+                originalCurrency: originalValues.currency,
+                currentDate,
+                originalDate: originalValues.transactionDate
+            });
+
+            return amountChanged || currencyChanged || dateChanged;
+        }
+
+        // 检查交易是否已报销
+        async function checkActiveReimbursement(transactionId) {
+            try {
+                // 获取所有原始报销记录（reimbursement_reversal_of = null）
+                const { data: originalEntries, error: originalError } = await supabase
+                    .from('wallet_entries')
+                    .select('id, reimbursement_pair_id')
+                    .eq('reference_id', transactionId)
+                    .eq('entry_type', 'reimbursement')
+                    .is('reimbursement_reversal_of', null) // 原始报销记录
+                    .order('created_at', { ascending: false }); // 按时间倒序，最新的在前
+                
+                if (originalError) throw originalError;
+                
+                // 如果没有原始报销记录，返回false
+                if (!originalEntries || originalEntries.length === 0) {
+                    return false;
+                }
+                
+                // 检查最新的报销记录是否有对应的撤销记录
+                const latestPairId = originalEntries[0].reimbursement_pair_id;
+                const { data: reversalEntries, error: reversalError } = await supabase
+                    .from('wallet_entries')
+                    .select('id')
+                    .eq('reference_id', transactionId)
+                    .eq('entry_type', 'reimbursement')
+                    .eq('reimbursement_reversal_of', latestPairId) // 对应的撤销记录
+                    .limit(1);
+                
+                if (reversalError) throw reversalError;
+                
+                // 如果最新的报销记录没有撤销记录，说明报销仍然活跃
+                return !reversalEntries || reversalEntries.length === 0;
+            } catch (error) {
+                console.error('Error checking active reimbursement:', error);
+                return false;
+            }
+        }
+
+        // 加载编辑交易数据
+        async function loadEditTransactionData(transactionId) {
+            try {
+                const { data: transaction, error } = await supabase
+                    .from('transactions')
+                    .select(`
+                        *,
+                        ledgers(id, name),
+                        categories(id, name)
+                    `)
+                    .eq('id', transactionId)
+                    .single();
+
+                if (error) throw error;
+
+                if (transaction) {
+                    // 如果需要显示付款人名称，单独查询 allowed_users（避免关系名不匹配导致400）
+                    let payerName = null;
+                    if (transaction.payer_id) {
+                        try {
+                            const { data: payer } = await supabase
+                                .from('allowed_users')
+                                .select('display_name, email')
+                                .eq('id', transaction.payer_id)
+                                .maybeSingle();
+                            if (payer) {
+                                payerName = payer.display_name || payer.email;
+                            }
+                        } catch (e) {
+                            console.warn('Failed to load payer info:', e);
+                        }
+                    }
+                    // 填充表单数据
+                    document.getElementById('type').value = transaction.type;
+                    document.getElementById('amount').value = transaction.amount;
+                    document.getElementById('amount').setAttribute('data-currency', transaction.currency);
+                    document.getElementById('currency').value = transaction.currency;
+                    document.getElementById('ledgerName').value = transaction.ledger_id;
+                    // 设置钱包选择为真实存储的钱包
+                    const walletSelect = document.getElementById('wallet');
+                    if (walletSelect && transaction.wallet_id) {
+                        walletSelect.value = transaction.wallet_id;
+                    }
+                    document.getElementById('notes').value = transaction.notes || '';
+                    
+                    // Reimbursable和Payer字段现在根据wallet类型自动推断，不需要手动设置
+                    // 如需显示付款人仅用于信息展示
+                    if (payerName) {
+                        const payerInfoEl = document.getElementById('payerInfo');
+                        if (payerInfoEl) {
+                            payerInfoEl.textContent = payerName;
+                        }
+                    }
+                    // 这些值会在保存时根据wallet类型自动计算
+                    
+                    // 设置交易日期时间 - 使用时区管理器转换UTC时间为本地时间
+                    const localTimeString = window.timezoneManager.convertToLocalTime(transaction.transaction_date);
+                    const transactionDate = new Date(localTimeString);
+                    
+                    // 格式化为本地时间显示
+                    const localYear = transactionDate.getFullYear();
+                    const localMonth = String(transactionDate.getMonth() + 1).padStart(2, '0');
+                    const localDay = String(transactionDate.getDate()).padStart(2, '0');
+                    const localHours = String(transactionDate.getHours()).padStart(2, '0');
+                    const localMinutes = String(transactionDate.getMinutes()).padStart(2, '0');
+                    const dateTimeString = `${localYear}-${localMonth}-${localDay}T${localHours}:${localMinutes}`;
+                    document.getElementById('transactionDate').value = dateTimeString;
+                    
+                    console.log('时间转换:', {
+                        original: transaction.transaction_date,
+                        utc: dateTimeString,
+                        note: '直接使用UTC时间，不进行时区转换'
+                    });
+
+                    // 加载分类并设置选中项
+                    const categories = await getCategories(transaction.ledger_id, transaction.type);
+                    updateCategoryOptions(categories);
+                    document.getElementById('category').value = transaction.category_id;
+
+                    // Payer字段现在根据wallet类型自动推断，不需要加载用户数据
+
+                    // 设置汇率显示
+                    window.sgdRate = transaction.sgd_rate || 1;
+                    window.cnyRate = transaction.cny_rate || 1;
+                    window.usdRate = transaction.usd_rate || 1;
+                    window.myrRate = transaction.myr_rate || 1;
+                    
+                    // 保存原有金额数据用于按比例调整
+                    window.sgdAmount = transaction.sgd_amount || 0;
+                    window.cnyAmount = transaction.cny_amount || 0;
+                    window.usdAmount = transaction.usd_amount || 0;
+                    window.myrAmount = transaction.myr_amount || 0;
+                    
+                    window.exchangeRatesLoaded = true;
+
+                    // 更新显示
+                    updateAmountDisplay();
+
+                    // 更新字符计数
+                    const charCount = document.getElementById('charCount');
+                    if (charCount) {
+                        charCount.textContent = transaction.notes?.length || 0;
+                    }
+
+                    // 更新页面标题和按钮文本
+                    document.title = 'Edit Transaction - Money Tracker';
+                    const saveButton = document.querySelector('.btn-save');
+                    if (saveButton) {
+                        saveButton.textContent = 'Update';
+                    }
+
+                    // 保存原始值用于比较变化
+                    originalValues = {
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        transactionDate: transaction.transaction_date,
+                        wallet_id: transaction.wallet_id || null,
+                        type: transaction.type
+                    };
+
+                    // 显示创建和修改时间信息
+                    displayTransactionMeta(transaction);
+
+                    console.log('编辑数据加载完成:', transaction);
+                    console.log('保存的原始值:', originalValues);
+                }
+            } catch (error) {
+                console.error('加载编辑数据失败:', error);
+                await showCustomAlert('Error', 'Failed to load transaction data for editing');
+            }
+        }
+
+                // 禁用所有输入字段（用于View模式）
+        function disableAllInputs() {
+            // 禁用所有输入字段、选择框、文本区域和复选框
+            const formElements = document.querySelectorAll('input, select, textarea');
+            formElements.forEach(element => {
+                element.disabled = true;
+            });
+            
+            // 隐藏保存按钮
+            const saveButton = document.querySelector('.btn-save');
+            if (saveButton) {
+                saveButton.style.display = 'none';
+            }
+            
+            // 隐藏不需要的按钮
+            const buttons = document.querySelectorAll('.btn-edit, .btn-delete');
+            buttons.forEach(button => {
+                button.style.display = 'none';
+            });
+            
+            // 添加View模式的视觉提示
+            const form = document.querySelector('form');
+            if (form) {
+                form.style.pointerEvents = 'none';
+            }
+        }
+
+        // 在View模式下显示数据库中存储的真实值
+        function displayViewModeValues() {
+            // 直接显示数据库中存储的金额和汇率
+            if (window.sgdAmount !== undefined) {
+                document.getElementById('sgdDisplay').innerHTML = `S$ ${formatCompactWithTitle(window.sgdAmount)}`;
+                document.getElementById('sgdInfo').textContent = `@${window.sgdRate ? window.sgdRate.toFixed(2) : '1.00'}`;
+            }
+            
+            if (window.cnyAmount !== undefined) {
+                document.getElementById('cnyDisplay').innerHTML = `¥ ${formatCompactWithTitle(window.cnyAmount)}`;
+                document.getElementById('cnyInfo').textContent = `@${window.cnyRate ? window.cnyRate.toFixed(2) : '1.00'}`;
+            }
+            
+            if (window.usdAmount !== undefined) {
+                document.getElementById('usdDisplay').innerHTML = `$ ${formatCompactWithTitle(window.usdAmount)}`;
+                document.getElementById('usdInfo').textContent = `@${window.usdRate ? window.usdRate.toFixed(2) : '1.00'}`;
+            }
+            
+            if (window.myrAmount !== undefined) {
+                document.getElementById('myrDisplay').innerHTML = `RM ${formatCompactWithTitle(window.myrAmount)}`;
+                document.getElementById('myrInfo').textContent = `@${window.myrRate ? window.myrRate.toFixed(2) : '1.00'}`;
+            }
+        }
+
+        // 设置模式切换按钮
+        async function setupModeToggleButton(text, targetMode) {
+            const modeToggleBtn = document.getElementById('modeToggleBtn');
+            const modeToggleText = document.getElementById('modeToggleText');
+            
+            if (modeToggleBtn && modeToggleText) {
+                modeToggleBtn.style.display = 'block';
+                modeToggleText.textContent = text;
+                
+                // 设置点击事件
+                modeToggleBtn.onclick = async function() {
+                    // 如果是Edit按钮，检查报销状态
+                    if (targetMode === 'edit') {
+                        const urlParams = new URLSearchParams(window.location.href);
+                        const transactionId = urlParams.get('id');
+                        
+                        if (transactionId) {
+                            const hasActiveReimbursement = await checkActiveReimbursement(transactionId);
+                            if (hasActiveReimbursement) {
+                                // 已报销，显示友好提示
+                                await showCustomAlert('Cannot Edit Transaction', 'This transaction has been reimbursed. Please cancel the reimbursement first before editing the transaction.');
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // 允许操作
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('mode', targetMode);
+                    window.location.href = currentUrl.toString();
+                };
+            }
+        }
+
+        // 初始化页面
+        async function initializePage() {
+            // 获取当前用户
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+
+
+            // 加载Ledger数据
+            await loadLedgers();
+
+            // 加载钱包数据并绑定联动
+            await loadWallets();
+            setupWalletChangeHandler();
+
+            // 初始化货币选择器
+            initializeCurrencySelector();
+
+            if (isEditMode) {
+                // 编辑模式：先检查报销状态
+                console.log('编辑模式：检查报销状态');
+                const hasActiveReimbursement = await checkActiveReimbursement(editTransactionId);
+                if (hasActiveReimbursement) {
+                    // 已报销，不允许编辑，重定向到View模式
+                                            await showCustomAlert('Cannot Edit Transaction', 'This transaction has been reimbursed. Cannot edit. Redirecting to view mode.');
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('mode', 'view');
+                    window.location.href = currentUrl.toString();
+                    return;
+                }
+                
+                // 编辑模式：加载现有交易数据
+                console.log('编辑模式：加载现有交易数据');
+                document.title = 'Edit Transaction - Money Tracker';
+                document.getElementById('pageTitle').textContent = 'Edit Transaction';
+                const saveButton = document.querySelector('.btn-save');
+                if (saveButton) {
+                    saveButton.textContent = 'Update';
+                }
+                
+                // 显示View按钮
+                setupModeToggleButton('View', 'view');
+                
+                await loadEditTransactionData(editTransactionId);
+                
+                // 在Edit模式下，也显示数据库中存储的真实值
+                displayViewModeValues();
+                
+                // 注意：不在这里清理localStorage，等保存成功后再清理
+            } else if (isViewMode) {
+                // 查看模式：加载现有交易数据，但禁用编辑
+                console.log('查看模式：加载现有交易数据');
+                document.title = 'View Transaction - Money Tracker';
+                document.getElementById('pageTitle').textContent = 'View Transaction';
+                
+                // 隐藏保存按钮，显示返回按钮
+                const saveButton = document.querySelector('.btn-save');
+                if (saveButton) {
+                    saveButton.style.display = 'none';
+                }
+                
+                // 显示Edit按钮
+                setupModeToggleButton('Edit', 'edit');
+                
+                // 加载交易数据
+                await loadEditTransactionData(editTransactionId);
+                
+                // 禁用所有输入字段
+                disableAllInputs();
+                
+                // 禁用表单提交（防止意外修改）
+                const form = document.querySelector('form');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    });
+                }
+                
+                // 在View模式下，直接显示数据库中存储的真实值
+                displayViewModeValues();
+            } else {
+                // 创建模式：设置默认值
+                console.log('创建模式：设置默认值');
+                document.title = 'New Transaction - Money Tracker';
+                document.getElementById('pageTitle').textContent = 'New Transaction';
+                
+                // 设置默认选项
+                document.getElementById('type').value = 'expense';
+                
+                // 设置默认日期时间为当前本地时间
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                document.getElementById('transactionDate').value = localDateTime;
+
+                // 加载分类和用户数据
+                await loadInitialData();
+                
+                // 获取汇率
+                await updateExchangeRates();
+            }
+
+            // 桌面端默认聚焦到金额框
+            if (window.innerWidth > 768) {
+                document.getElementById('amount').focus();
+            }
+            
+            // 额外的检查：确保在移动端日期选择器有默认值
+            setTimeout(() => {
+                const transactionDateInput = document.getElementById('transactionDate');
+                if (transactionDateInput && !transactionDateInput.value && !isEditMode && !isViewMode) {
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    transactionDateInput.value = localDateTime;
+                    console.log('移动端日期设置完成:', localDateTime);
+                }
+                
+                // 调试信息：检查localStorage状态
+                console.log('=== localStorage 调试信息 ===');
+                console.log('APP_CONFIG 是否存在:', !!APP_CONFIG);
+                console.log('APP_CONFIG.userPreferences 是否存在:', !!(APP_CONFIG && APP_CONFIG.userPreferences));
+                
+                if (APP_CONFIG && APP_CONFIG.userPreferences) {
+                    console.log('localStorage 键值:');
+                    Object.entries(APP_CONFIG.userPreferences.keys).forEach(([key, storageKey]) => {
+                        const value = localStorage.getItem(storageKey);
+                        console.log(`  ${key}: ${value || '(空)'}`);
+                    });
+                }
+                
+                // 显示当前选择器的值
+                console.log('当前选择器值:');
+                console.log('  币种:', document.getElementById('currency')?.value || '(未设置)');
+                console.log('  类型:', document.getElementById('type')?.value || '(未设置)');
+                console.log('  分类:', document.getElementById('category')?.value || '(未设置)');
+                console.log('  日期:', document.getElementById('transactionDate')?.value || '(未设置)');
+                console.log('=== 调试信息结束 ===');
+            }, 200);
+        }
+
+        function updateCategoryOptions(categories) {
+            const categorySelect = document.getElementById('category');
+            if (!categories || categories.length === 0) {
+                categorySelect.innerHTML = '<option value="" disabled>No categories — create one in Settings</option>';
+                categorySelect.disabled = true;
+                // 友好提示（仅在创建模式触发一次即可）
+                if (!window.__categoryEmptyWarned) {
+                    window.__categoryEmptyWarned = true;
+                    showCustomAlert('No Categories', 'You have no categories in this ledger. Go to Settings to create one, then return here.');
+                }
+                return;
+            }
+            categorySelect.disabled = false;
+            categorySelect.innerHTML = '<option value="" disabled>Select a Category</option>';
+            
+            // 尝试从localStorage获取上次选择的分类（添加安全检查）
+            let lastCategory = null;
+            if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.getLastCategory === 'function') {
+                lastCategory = APP_CONFIG.userPreferences.getLastCategory();
+            }
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                // 在category名称前添加emoji
+                const emoji = cat.emoji || '📁'; // 如果没有emoji，使用默认图标
+                option.textContent = `${emoji} ${cat.name}`;
+                
+                // 如果是上次选择的分类，设置为选中
+                if (lastCategory && cat.id === lastCategory) {
+                    option.selected = true;
+                }
+                
+                categorySelect.appendChild(option);
+            });
+        }
+
+        // 加载创建模式下的初始数据
+        async function loadInitialData() {
+            // 确保设置默认日期时间（在移动端可能需要重新设置）
+            const transactionDateInput = document.getElementById('transactionDate');
+            if (!transactionDateInput.value) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                transactionDateInput.value = localDateTime;
+            }
+            
+            // 尝试从localStorage获取上次选择的类型（添加安全检查）
+            let lastType = null;
+            if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.getLastType === 'function') {
+                lastType = APP_CONFIG.userPreferences.getLastType();
+            }
+            const defaultType = lastType || 'expense';
+            
+            // 设置类型选择器
+            const typeSelect = document.getElementById('type');
+            typeSelect.value = defaultType;
+            
+            // 友好引导：若没有任何 ledger 或 wallet，提示并禁用保存
+            const ledgerSelect = document.getElementById('ledgerName');
+            const walletSelect = document.getElementById('wallet');
+            const hasLedger = ledgerSelect && ledgerSelect.options && ledgerSelect.options.length > 1;
+            const hasWallet = walletSelect && walletSelect.options && walletSelect.options.length > 1;
+            if (!hasLedger || !hasWallet) {
+                await showCustomAlert('Setup Required', 'Please create at least one ledger and one wallet in Settings before creating a transaction.');
+                updateCategoryOptions([]);
+                const saveBtn = document.querySelector('.btn-save');
+                if (saveBtn) saveBtn.disabled = true;
+                return;
+            }
+
+            // 加载分类 - 使用当前选中的 ledger 和默认 type
+            const ledgerId = ledgerSelect.value;
+            const categories = await getCategories(ledgerId, defaultType);
+            updateCategoryOptions(categories);
+
+            // Payer字段现在根据wallet类型自动推断，不需要加载用户数据
+        }
+
+        // Notes输入框焦点处理
+        function handleNotesFocus() {
+            if (window.innerWidth <= 768) {
+                document.querySelector('.container').classList.add('notes-active');
+                // 滚动到Notes输入框
+                document.getElementById('notes').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+        function handleNotesBlur() {
+            if (window.innerWidth <= 768) {
+                document.querySelector('.container').classList.remove('notes-active');
+            }
+        }
+
+        // 事件监听器
+        document.getElementById('type').addEventListener('change', async function () {
+            const type = this.value;
+            
+            // 创建模式才写入本地偏好
+            if (!isEditMode && !isViewMode) {
+                if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.saveLastType === 'function') {
+                    APP_CONFIG.userPreferences.saveLastType(type);
+                    console.log('类型偏好已保存:', type);
+                } else {
+                    console.log('类型偏好保存失败: APP_CONFIG.userPreferences.saveLastType 不可用');
+                }
+            }
+            
+            const ledgerId = document.getElementById('ledgerName').value;
+            const categories = await getCategories(ledgerId, type);
+            updateCategoryOptions(categories);
+        });
+
+        // 添加分类选择器变化监听
+        document.getElementById('category').addEventListener('change', function () {
+            const categoryId = this.value;
+            // 创建模式才写入本地偏好
+            if (!isEditMode && !isViewMode) {
+                if (APP_CONFIG && APP_CONFIG.userPreferences && typeof APP_CONFIG.userPreferences.saveLastCategory === 'function') {
+                    APP_CONFIG.userPreferences.saveLastCategory(categoryId);
+                    console.log('分类偏好已保存:', categoryId);
+                } else {
+                    console.log('分类偏好保存失败: APP_CONFIG.userPreferences.saveLastCategory 不可用');
+                }
+            }
+        });
+
+        // 添加Ledger Name变化监听
+        document.getElementById('ledgerName').addEventListener('change', async function () {
+            const ledgerId = this.value;
+            const type = document.getElementById('type').value;
+            const categories = await getCategories(ledgerId, type);
+            updateCategoryOptions(categories);
+        });
+
+        document.getElementById('amount').addEventListener('input', handleAmountInput);
+        document.getElementById('amount').addEventListener('blur', handleAmountBlur);
+
+        // 添加Notes输入框焦点监听
+        document.getElementById('notes').addEventListener('focus', handleNotesFocus);
+        document.getElementById('notes').addEventListener('blur', handleNotesBlur);
+
+        // 表单提交处理
+        document.getElementById('transactionForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const form = document.getElementById('transactionForm');
+            const formData = new FormData(form);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                await showCustomAlert('Login Required', 'Please login first');
+                return;
+            }
+
+            // 检查必填字段 (payer字段现在根据wallet类型自动推断，不需要验证)
+            const requiredFields = ['ledgerName', 'transactionDate', 'type', 'category', 'amount'];
+            const missingFields = requiredFields.filter(fieldName => {
+                const field = form.elements[fieldName];
+                return !field || field.value.trim() === '';
+            });
+
+            if (missingFields.length > 0) {
+                window.showErrorModal('Please fill in all required fields: ' + missingFields.join(', '));
+                return;
+            }
+
+            // 禁用保存按钮，防止重复提交
+            const saveButton = document.querySelector('.btn-save');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            try {
+                // 直接使用已计算的汇率和金额，避免重复计算
+                // 基础币种以钱包币种为准
+                const walletSelect = document.getElementById('wallet');
+                const selectedWalletOption = walletSelect && walletSelect.options[walletSelect.selectedIndex];
+                const walletCurrency = selectedWalletOption ? selectedWalletOption.getAttribute('data-currency') : null;
+                const uiCurrency = document.getElementById('amount').getAttribute('data-currency') || 'SGD';
+                let currency = walletCurrency || uiCurrency;
+                const enteredAmount = parseFloat(formData.get('amount')) || 0;
+
+                // 检查是否需要重新计算汇率
+                const needsRecalculation = hasKeyFieldsChanged();
+                
+                if (needsRecalculation) {
+                    console.log('关键字段发生变化，重新计算汇率...');
+                    if (!window.exchangeRatesLoaded) {
+                        console.log('Exchange rates not loaded, loading now...');
+                        await updateExchangeRates();
+                    }
+                } else {
+                    console.log('关键字段未变化，使用原有汇率数据');
+                    // 使用原有的汇率数据，不需要重新计算
+                }
+
+                let sgdRate, cnyRate, usdRate, myrRate;
+                let sgdAmount, cnyAmount, usdAmount, myrAmount;
+                let amount; // 将要保存的金额（以钱包币种为单位）
+
+                if (needsRecalculation) {
+                    // 若当前缓存的汇率不是以钱包币种为基准，则重新拉取以钱包币种为基准的汇率
+                    const txLocal = formData.get('transactionDate');
+                    const safeTxDate = txLocal && txLocal.trim() !== '' ? txLocal : (function(){
+                        const now = new Date();
+                        const y = now.getFullYear();
+                        const m = String(now.getMonth() + 1).padStart(2, '0');
+                        const d = String(now.getDate()).padStart(2, '0');
+                        const hh = String(now.getHours()).padStart(2, '0');
+                        const mm = String(now.getMinutes()).padStart(2, '0');
+                        return `${y}-${m}-${d}T${hh}:${mm}`;
+                    })();
+
+                    // 获取以钱包币种为基准的所有汇率
+                    const walletBaseRates = await getAllExchangeRatesForDate(currency, safeTxDate);
+                    window.sgdRate = walletBaseRates.SGD || 1;
+                    window.cnyRate = walletBaseRates.CNY || 1;
+                    window.usdRate = walletBaseRates.USD || 1;
+                    window.myrRate = walletBaseRates.MYR || 1;
+
+                    sgdRate = window.sgdRate; cnyRate = window.cnyRate; usdRate = window.usdRate; myrRate = window.myrRate;
+
+                    // 若输入币种与钱包币种不同，需要先把输入金额折算成钱包币种金额
+                    if (uiCurrency !== currency) {
+                        const rateWalletToUI = walletBaseRates[uiCurrency]; // base: wallet -> ui
+                        amount = rateWalletToUI ? (enteredAmount / rateWalletToUI) : enteredAmount;
+                    } else {
+                        amount = enteredAmount;
+                    }
+
+                    // 计算各币种金额（基于钱包币种金额）
+                    sgdAmount = (amount * sgdRate).toFixed(2);
+                    cnyAmount = (amount * cnyRate).toFixed(2);
+                    usdAmount = (amount * usdRate).toFixed(2);
+                    myrAmount = (amount * myrRate).toFixed(2);
+                } else {
+                    // 不需要重新计算：使用原有数据
+                    if (isEditMode) {
+                        // 从原始值中获取汇率和金额
+                        const originalAmount = originalValues.amount;
+                        sgdRate = window.sgdRate;
+                        cnyRate = window.cnyRate;
+                        usdRate = window.usdRate;
+                        myrRate = window.myrRate;
+
+                        // 按比例调整金额
+                        // 先把输入金额换算到钱包币种
+                        if (uiCurrency !== currency) {
+                            const txLocal = formData.get('transactionDate');
+                            const safeTxDate = txLocal && txLocal.trim() !== '' ? txLocal : (function(){
+                                const now = new Date();
+                                const y = now.getFullYear();
+                                const m = String(now.getMonth() + 1).padStart(2, '0');
+                                const d = String(now.getDate()).padStart(2, '0');
+                                const hh = String(now.getHours()).padStart(2, '0');
+                                const mm = String(now.getMinutes()).padStart(2, '0');
+                                return `${y}-${m}-${d}T${hh}:${mm}`;
+                            })();
+                            const walletBaseRates = await getAllExchangeRatesForDate(currency, safeTxDate);
+                            const rateWalletToUI = walletBaseRates[uiCurrency];
+                            amount = rateWalletToUI ? (enteredAmount / rateWalletToUI) : enteredAmount;
+                        } else {
+                            amount = enteredAmount;
+                        }
+
+                        const ratio = amount / originalAmount;
+                        sgdAmount = (parseFloat(window.sgdAmount || 0) * ratio).toFixed(2);
+                        cnyAmount = (parseFloat(window.cnyAmount || 0) * ratio).toFixed(2);
+                        usdAmount = (parseFloat(window.usdAmount || 0) * ratio).toFixed(2);
+                        myrAmount = (parseFloat(window.myrAmount || 0) * ratio).toFixed(2);
+
+                        console.log('使用原有汇率，按比例调整金额:', {
+                            originalAmount,
+                            newAmount: amount,
+                            ratio,
+                            sgdAmount,
+                            cnyAmount,
+                            usdAmount,
+                            myrAmount
+                        });
+                    } else {
+                        // 新建模式：使用当前汇率
+                        // 保证以钱包币种为基准
+                        const txLocal2 = formData.get('transactionDate');
+                        const safeTxDate2 = txLocal2 && txLocal2.trim() !== '' ? txLocal2 : (function(){
+                            const now = new Date();
+                            const y = now.getFullYear();
+                            const m = String(now.getMonth() + 1).padStart(2, '0');
+                            const d = String(now.getDate()).padStart(2, '0');
+                            const hh = String(now.getHours()).padStart(2, '0');
+                            const mm = String(now.getMinutes()).padStart(2, '0');
+                            return `${y}-${m}-${d}T${hh}:${mm}`;
+                        })();
+                        const walletBaseRates = await getAllExchangeRatesForDate(currency, safeTxDate2);
+                        sgdRate = walletBaseRates.SGD || 1; cnyRate = walletBaseRates.CNY || 1; usdRate = walletBaseRates.USD || 1; myrRate = walletBaseRates.MYR || 1;
+
+                        // 先把输入金额换算为钱包币种
+                        if (uiCurrency !== currency) {
+                            const rateWalletToUI = walletBaseRates[uiCurrency];
+                            amount = rateWalletToUI ? (enteredAmount / rateWalletToUI) : enteredAmount;
+                        } else {
+                            amount = enteredAmount;
+                        }
+
+                        sgdAmount = (amount * sgdRate).toFixed(2);
+                        cnyAmount = (amount * cnyRate).toFixed(2);
+                        usdAmount = (amount * usdRate).toFixed(2);
+                        myrAmount = (amount * myrRate).toFixed(2);
+                    }
+                }
+
+                // 处理日期时间，确保正确的时区处理
+                const localDateTime = formData.get('transactionDate');
+                const transactionDate = new Date(localDateTime);
+                const isoDateTime = transactionDate.toISOString();
+                
+                // 获取本地时间字符串（用于存储到transaction_date_local字段）
+                const localDateTimeString = window.timezoneManager.getLocalTimeString(isoDateTime);
+
+                // 根据wallet类型自动推断reimbursement_status和payer信息
+                const walletId = formData.get('wallet');
+                const inferredData = await inferReimbursementAndPayer(walletId);
+
+                const transactionData = {
+                    ledger_id: formData.get('ledgerName'),
+                    ledger_name: document.getElementById('ledgerName').options[document.getElementById('ledgerName').selectedIndex].text,
+                    transaction_date: isoDateTime,
+                    transaction_date_local: localDateTimeString, // 存储本地时间字符串
+                    type: formData.get('type'),
+                    amount: parseFloat(amount.toFixed(2)),
+                    currency: currency,
+                    wallet_id: walletId,
+                    category_id: formData.get('category'),
+                    notes: formData.get('notes'),
+                    payer_id: inferredData.payer_id, // 自动推断的payer_id
+                    payer_name: inferredData.payer_name, // 自动推断的payer_name
+                    needs_reimbursement: inferredData.reimbursement_status === 'pending', // 根据推断的状态设置
+                    sgd_rate: window.sgdRate,
+                    sgd_amount: parseFloat(sgdAmount),
+                    cny_rate: window.cnyRate,
+                    cny_amount: parseFloat(cnyAmount),
+                    usd_rate: window.usdRate,
+                    usd_amount: parseFloat(usdAmount),
+                    myr_rate: window.myrRate,
+                    myr_amount: parseFloat(myrAmount),
+                    reimbursement_status: inferredData.reimbursement_status, // 使用推断的状态
+                    creator_id: await getCurrentUserUUID(), // 从allowed_users表获取当前用户的UUID
+                    creator_name: user.user_metadata?.full_name || user.email,
+                    creator_email: user.email,
+                    created_at: new Date().toISOString() // 添加创建时间
+                };
+
+                console.log('Saving transaction:', transactionData);
+
+                let data, error;
+                if (isEditMode && editTransactionId) {
+                    // 编辑模式：更新现有记录
+                    const updateResult = await supabase
+                        .from('transactions')
+                        .update(transactionData)
+                        .eq('id', editTransactionId)
+                        .select('id')
+                        .single();
+                    data = updateResult.data;
+                    error = updateResult.error;
+                    console.log('Transaction updated successfully:', data);
+                } else {
+                    // 新建模式：插入新记录
+                    const insertResult = await supabase
+                        .from('transactions')
+                        .insert([transactionData])
+                        .select('id')
+                        .single();
+                    data = insertResult.data;
+                    error = insertResult.error;
+                    console.log('Transaction created successfully:', data);
+                }
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+
+                // === Sync wallet balances & entries ===
+                try {
+                    const currentUser = await supabase.auth.getUser();
+                    const currentUserName = currentUser?.data?.user?.user_metadata?.full_name || currentUser?.data?.user?.email || 'Unknown';
+                    const newDelta = (transactionData.type === 'income' ? 1 : -1) * parseFloat(transactionData.amount || 0);
+                    const txId = isEditMode ? editTransactionId : (data?.id);
+
+                    if (isEditMode && originalValues) {
+                        // If wallet changed or amount/type changed, compute delta change
+                        const oldDelta = (originalValues.type === 'income' ? 1 : -1) * parseFloat(originalValues.amount || 0);
+                        if (originalValues.wallet_id && originalValues.wallet_id === transactionData.wallet_id) {
+                            const deltaChange = newDelta - oldDelta;
+                            if (Math.abs(deltaChange) > 0.0001) {
+                                const fmt = (v) => {
+                                    try { return Number(v).toFixed(2); } catch { return String(v); }
+                                };
+                                const desc = `Transaction edit: ${fmt(originalValues.amount)} ${transactionData.currency} → ${fmt(transactionData.amount)} ${transactionData.currency}`;
+                                await updateWalletBalanceAndEntry({
+                                    walletId: transactionData.wallet_id,
+                                    deltaAmount: deltaChange,
+                                    referenceId: txId,
+                                    description: desc,
+                                    entryType: 'transaction',
+                                    currentUserName
+                                });
+                            }
+                        } else {
+                            // Wallet changed: write two entries but mark as 'transaction' and include wallet names
+                            let oldWalletName = 'Old Wallet';
+                            let newWalletName = 'New Wallet';
+                            try {
+                                if (originalValues.wallet_id) {
+                                    const wOld = await getWalletById(originalValues.wallet_id);
+                                    if (wOld && wOld.name) oldWalletName = wOld.name;
+                                }
+                                if (transactionData.wallet_id) {
+                                    const wNew = await getWalletById(transactionData.wallet_id);
+                                    if (wNew && wNew.name) newWalletName = wNew.name;
+                                }
+                            } catch {}
+
+                            const fmt = (v) => { try { return Number(v).toFixed(2); } catch { return String(v); } };
+                            const movedDesc = `Transaction edit: ${oldWalletName} ${fmt(originalValues.amount)} ${originalValues.currency} → ${newWalletName} ${fmt(transactionData.amount)} ${transactionData.currency}`;
+
+                            // Revert old wallet
+                            if (originalValues.wallet_id) {
+                                await updateWalletBalanceAndEntry({
+                                    walletId: originalValues.wallet_id,
+                                    deltaAmount: -oldDelta,
+                                    referenceId: txId,
+                                    description: movedDesc,
+                                    entryType: 'transaction',
+                                    currentUserName
+                                });
+                            }
+                            // Apply to new wallet
+                            if (transactionData.wallet_id) {
+                                await updateWalletBalanceAndEntry({
+                                    walletId: transactionData.wallet_id,
+                                    deltaAmount: newDelta,
+                                    referenceId: txId,
+                                    description: movedDesc,
+                                    entryType: 'transaction',
+                                    currentUserName
+                                });
+                            }
+                        }
+                    } else {
+                        // Create: apply to selected wallet
+                        if (transactionData.wallet_id) {
+                            await updateWalletBalanceAndEntry({
+                                walletId: transactionData.wallet_id,
+                                deltaAmount: newDelta,
+                                referenceId: data?.id,
+                                description: 'New transaction',
+                                currentUserName
+                            });
+                        }
+                    }
+                } catch (walletSyncErr) {
+                    console.error('Wallet sync error:', walletSyncErr);
+                }
+
+                // 保存成功后跳转回home页面
+                if (isEditMode && editTransactionId) {
+                    window.location.href = 'home.html';
+                }
+
+                window.showSuccessModal();
+            } catch (error) {
+                console.error('Error saving transaction:', error);
+                window.showErrorModal('Error saving transaction: ' + error.message);
+            } finally {
+                // 恢复保存按钮
+                saveButton.disabled = false;
+                saveButton.textContent = isEditMode ? 'Update' : 'Save';
+            }
+        });
+
+        // 初始化页面
+        initializePage();
+    </script>
+</body>
+
+</html>

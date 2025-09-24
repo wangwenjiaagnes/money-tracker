@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Local Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 本地服务器运行成功！</h1>
+        <p>如果您看到这个页面，说明本地服务器正在正常工作。</p>
+        <p>当前时间: <span id="current-time"></span></p>
+        
+        <div style="margin-top: 30px;">
+            <a href="../login.html" class="btn">测试登录页面</a>
+            <a href="home.html" class="btn">测试主页</a>
+            <a href="analysis.html" class="btn">测试分析页面</a>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+            <p>如果登录后仍然跳转到线上版本，请：</p>
+            <p>1. 清除浏览器缓存</p>
+            <p>2. 检查Supabase项目设置</p>
+            <p>3. 确保重定向URL配置正确</p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('current-time').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>

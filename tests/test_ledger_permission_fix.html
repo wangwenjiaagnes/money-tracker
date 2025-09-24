@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledger Permission Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 15px; margin: 5px; background: #4f46e5; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Ledger Permission Fix Test</h1>
+    
+    <div class="test-section">
+        <h3>1. 配置检查</h3>
+        <div id="config-result" class="result">检查中...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 用户信息</h3>
+        <div id="user-result" class="result">检查中...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 创建测试Ledger</h3>
+        <div class="form-group">
+            <label for="ledger-name">Ledger Name:</label>
+            <input type="text" id="ledger-name" value="Test Ledger" placeholder="Enter ledger name">
+        </div>
+        <div class="form-group">
+            <label for="ledger-description">Description:</label>
+            <textarea id="ledger-description" placeholder="Enter description (optional)">Test ledger for permission fix</textarea>
+        </div>
+        <button onclick="createTestLedger()">创建测试Ledger</button>
+        <div id="create-result" class="result">点击按钮创建</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. 验证权限</h3>
+        <button onclick="verifyPermissions()">验证权限</button>
+        <div id="verify-result" class="result">点击按钮验证</div>
+    </div>
+
+    <script src="../assets/js/supabase.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            window.APP_CONFIG.api.supabase.url,
+            window.APP_CONFIG.api.supabase.anonKey
+        );
+
+        let testLedgerId = null;
+
+        // 1. 检查配置
+        function checkConfig() {
+            const config = window.APP_CONFIG;
+            const accessControl = config && config.accessControl;
+            const enabled = accessControl && accessControl.enabled;
+            
+            document.getElementById('config-result').innerHTML = `
+                <strong>访问控制开关:</strong> ${enabled ? '✅ 已启用' : '❌ 未启用'}<br>
+                <strong>配置对象:</strong> <pre>${JSON.stringify(accessControl, null, 2)}</pre>
+            `;
+        }
+
+        // 2. 检查用户信息
+        async function checkUser() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) throw error;
+                
+                if (!user) {
+                    document.getElementById('user-result').innerHTML = '<span class="error">❌ 用户未登录</span>';
+                    return;
+                }
+                
+                // 获取用户在 allowed_users 中的信息
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name, email')
+                    .eq('email', user.email)
+                    .single();
+                
+                if (userError) throw userError;
+                
+                document.getElementById('user-result').innerHTML = `
+                    <strong>认证用户:</strong> ${user.email}<br>
+                    <strong>用户ID:</strong> ${userData.id}<br>
+                    <strong>显示名称:</strong> ${userData.display_name || 'N/A'}<br>
+                    <strong>Auth ID:</strong> ${user.id}
+                `;
+            } catch (error) {
+                document.getElementById('user-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 3. 创建测试Ledger
+        async function createTestLedger() {
+            try {
+                const name = document.getElementById('ledger-name').value.trim();
+                const description = document.getElementById('ledger-description').value.trim();
+                
+                if (!name) {
+                    document.getElementById('create-result').innerHTML = '<span class="error">❌ 请输入Ledger名称</span>';
+                    return;
+                }
+                
+                // 获取当前用户信息
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error('用户未登录');
+                
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name, email')
+                    .eq('email', user.email)
+                    .single();
+                if (userError) throw userError;
+                
+                // 创建Ledger - 只使用存在的字段
+                const { data: newLedger, error: ledgerError } = await supabase
+                    .from('ledgers')
+                    .insert([{ 
+                        name: name, 
+                        description: description || null,
+                        last_editor_name: userData.display_name,
+                        last_edited_at: new Date().toISOString()
+                    }])
+                    .select('id')
+                    .single();
+                
+                if (ledgerError) throw ledgerError;
+                
+                testLedgerId = newLedger.id;
+                
+                // 自动将创建者添加为ledger成员（owner角色）
+                const { error: memberError } = await supabase
+                    .from('ledger_members')
+                    .insert([{
+                        ledger_id: newLedger.id,
+                        user_id: userData.id,
+                        role: 'owner',
+                        created_by: userData.id
+                    }]);
+                
+                if (memberError) {
+                    console.error('Failed to add creator as ledger member:', memberError);
+                    document.getElementById('create-result').innerHTML = `
+                        <span class="error">❌ Ledger创建成功，但添加成员权限失败: ${memberError.message}</span>
+                    `;
+                    return;
+                }
+                
+                document.getElementById('create-result').innerHTML = `
+                    <span class="success">✅ Ledger创建成功！</span><br>
+                    <strong>Ledger ID:</strong> ${newLedger.id}<br>
+                    <strong>名称:</strong> ${name}<br>
+                    <strong>描述:</strong> ${description || '无'}<br>
+                    <strong>创建者权限:</strong> 已自动添加为owner
+                `;
+            } catch (error) {
+                document.getElementById('create-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 4. 验证权限
+        async function verifyPermissions() {
+            try {
+                if (!testLedgerId) {
+                    document.getElementById('verify-result').innerHTML = '<span class="error">❌ 请先创建测试Ledger</span>';
+                    return;
+                }
+                
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error('用户未登录');
+                
+                const { data: userData, error: userError } = await supabase
+                    .from('allowed_users')
+                    .select('id')
+                    .eq('email', user.email)
+                    .single();
+                if (userError) throw userError;
+                
+                // 检查ledger_members权限
+                const { data: memberData, error: memberError } = await supabase
+                    .from('ledger_members')
+                    .select('role, created_by')
+                    .eq('ledger_id', testLedgerId)
+                    .eq('user_id', userData.id)
+                    .single();
+                
+                if (memberError) {
+                    document.getElementById('verify-result').innerHTML = `
+                        <span class="error">❌ 权限验证失败: ${memberError.message}</span>
+                    `;
+                    return;
+                }
+                
+                // 测试通过ledger_members查询ledger（模拟实际使用场景）
+                const { data: ledgerData, error: ledgerError } = await supabase
+                    .from('ledgers')
+                    .select('id, name, description, ledger_members!inner(user_id)')
+                    .eq('id', testLedgerId)
+                    .eq('ledger_members.user_id', userData.id)
+                    .single();
+                
+                if (ledgerError) {
+                    document.getElementById('verify-result').innerHTML = `
+                        <span class="error">❌ 通过ledger_members查询失败: ${ledgerError.message}</span>
+                    `;
+                    return;
+                }
+                
+                document.getElementById('verify-result').innerHTML = `
+                    <span class="success">✅ 权限验证成功！</span><br>
+                    <strong>成员角色:</strong> ${memberData.role}<br>
+                    <strong>创建者:</strong> ${memberData.created_by}<br>
+                    <strong>Ledger信息:</strong> ${ledgerData.name} (${ledgerData.description || '无描述'})<br>
+                    <strong>RLS策略:</strong> 通过ledger_members成功访问
+                `;
+            } catch (error) {
+                document.getElementById('verify-result').innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+            }
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            checkConfig();
+            checkUser();
+        };
+    </script>
+</body>
+</html>

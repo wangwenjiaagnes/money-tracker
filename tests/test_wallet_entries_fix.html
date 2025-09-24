@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Entries Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .wallet-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .entry-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Wallet Entries Fix Test</h1>
+    <p>测试修复后的钱包创建逻辑，确保负数余额也能正确创建wallet_entries记录</p>
+
+    <div class="test-section">
+        <h2>📋 测试说明</h2>
+        <div class="info">
+            <strong>问题描述：</strong> 创建钱包时，如果初始余额为负数（如-10.00），不会创建对应的wallet_entries记录。<br>
+            <strong>修复内容：</strong> 移除了条件判断，现在所有钱包（包括零余额）都会创建wallet_entries记录<br>
+            <strong>测试目标：</strong> 验证所有余额类型的钱包都能正确创建wallet_entries记录
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 测试操作</h2>
+        <button onclick="testPositiveBalance()">测试正数余额 (+100.00)</button>
+        <button onclick="testNegativeBalance()">测试负数余额 (-50.00)</button>
+        <button onclick="testZeroBalance()">测试零余额 (0.00)</button>
+        <button onclick="clearTestResults()">清除结果</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 测试日志</h2>
+        <div id="test-log"></div>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/supabase.js"></script>
+    <script>
+        let testResults = [];
+        let testLog = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testLog.push({ message: logEntry, type });
+            updateLogDisplay();
+            console.log(logEntry);
+        }
+
+        function updateLogDisplay() {
+            const logContainer = document.getElementById('test-log');
+            logContainer.innerHTML = testLog.map(entry => 
+                `<div class="test-result ${entry.type}">${entry.message}</div>`
+            ).join('');
+        }
+
+        function addTestResult(testName, success, details) {
+            testResults.push({ testName, success, details, timestamp: new Date() });
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsContainer = document.getElementById('test-results');
+            resultsContainer.innerHTML = testResults.map(result => {
+                const statusClass = result.success ? 'success' : 'error';
+                const statusIcon = result.success ? '✅' : '❌';
+                return `
+                    <div class="test-result ${statusClass}">
+                        <strong>${statusIcon} ${result.testName}</strong><br>
+                        ${result.details}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearTestResults() {
+            testResults = [];
+            testLog = [];
+            updateResultsDisplay();
+            updateLogDisplay();
+        }
+
+        async function createTestWallet(name, amount, currency = 'SGD') {
+            try {
+                log(`开始创建测试钱包: ${name}, 金额: ${amount}, 币种: ${currency}`);
+
+                // 获取当前用户信息
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    throw new Error('用户未认证');
+                }
+
+                // 获取用户显示名称
+                const { data: userData } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name')
+                    .eq('email', user.email)
+                    .single();
+
+                if (!userData) {
+                    throw new Error('用户不在允许列表中');
+                }
+
+                const currentUserId = userData.id;
+                const currentUserName = userData.display_name || user.email;
+
+                // 创建钱包数据
+                const walletData = {
+                    name: name,
+                    wallet_type: 'personal',
+                    owner_id: currentUserId,
+                    currency: currency,
+                    description: `测试钱包 - ${name}`,
+                    balance: amount.toString(),
+                    last_editor_name: currentUserName,
+                    updated_at: new Date().toISOString()
+                };
+
+                // 插入钱包
+                const { data: newWallet, error: walletError } = await supabase
+                    .from('wallets')
+                    .insert([walletData])
+                    .select('id')
+                    .single();
+
+                if (walletError) throw walletError;
+
+                log(`钱包创建成功，ID: ${newWallet.id}`);
+
+                // 检查是否创建了wallet_entries记录
+                const { data: entries, error: entriesError } = await supabase
+                    .from('wallet_entries')
+                    .select('*')
+                    .eq('wallet_id', newWallet.id)
+                    .eq('entry_type', 'initial');
+
+                if (entriesError) throw entriesError;
+
+                log(`查询到 ${entries.length} 条wallet_entries记录`);
+
+                return {
+                    wallet: newWallet,
+                    entries: entries,
+                    success: true
+                };
+
+            } catch (error) {
+                log(`创建钱包失败: ${error.message}`, 'error');
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        async function testPositiveBalance() {
+            log('开始测试正数余额...');
+            const result = await createTestWallet('Test Positive Wallet', 100.00);
+            
+            if (result.success) {
+                const hasEntry = result.entries && result.entries.length > 0;
+                addTestResult(
+                    '正数余额测试',
+                    hasEntry,
+                    hasEntry ? 
+                        `✅ 成功创建wallet_entries记录 (${result.entries.length}条)` :
+                        `❌ 未创建wallet_entries记录`
+                );
+            } else {
+                addTestResult('正数余额测试', false, `❌ 创建失败: ${result.error}`);
+            }
+        }
+
+        async function testNegativeBalance() {
+            log('开始测试负数余额...');
+            const result = await createTestWallet('Test Negative Wallet', -50.00);
+            
+            if (result.success) {
+                const hasEntry = result.entries && result.entries.length > 0;
+                addTestResult(
+                    '负数余额测试',
+                    hasEntry,
+                    hasEntry ? 
+                        `✅ 成功创建wallet_entries记录 (${result.entries.length}条)` :
+                        `❌ 未创建wallet_entries记录`
+                );
+            } else {
+                addTestResult('负数余额测试', false, `❌ 创建失败: ${result.error}`);
+            }
+        }
+
+        async function testZeroBalance() {
+            log('开始测试零余额...');
+            const result = await createTestWallet('Test Zero Wallet', 0.00);
+            
+            if (result.success) {
+                const hasEntry = result.entries && result.entries.length > 0;
+                addTestResult(
+                    '零余额测试',
+                    hasEntry, // 零余额也应该创建记录
+                    hasEntry ? 
+                        `✅ 成功创建wallet_entries记录 (${result.entries.length}条)` :
+                        `❌ 未创建wallet_entries记录`
+                );
+            } else {
+                addTestResult('零余额测试', false, `❌ 创建失败: ${result.error}`);
+            }
+        }
+
+        // 页面加载时显示当前修复状态
+        window.addEventListener('load', function() {
+            log('页面加载完成，准备开始测试');
+            log('修复状态：已移除条件判断，所有钱包都会创建wallet_entries记录');
+        });
+    </script>
+</body>
+</html>

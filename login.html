@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Money Tracker</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/png" href="assets/png/app_icon.png" />
+    <link rel="shortcut icon" type="image/png" href="assets/png/app_icon.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="assets/png/app_icon.png" />
+    <link rel="apple-touch-icon-precomposed" href="assets/png/app_icon.png" />
+    
+    <!-- Android Web App Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Money Tracker" />
+    
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .brand {
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+      }
+      
+      #state {
+        font-size: 18px;
+        margin-bottom: 30px;
+        color: #333;
+        font-weight: 500;
+      }
+      
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 5px;
+        font-family: inherit;
+      }
+      
+      #login {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        padding: 14px 28px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      
+      #login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+      
+      button:active {
+        transform: translateY(0);
+      }
+
+      /* 移动端优化 */
+      @media (max-width: 768px) {
+        body {
+          padding: 20px;
+        }
+        .container {
+          padding: 24px;
+          margin: 0;
+          max-height: 90vh;
+          overflow-y: auto;
+          width: calc(100% - 40px);
+          max-width: 340px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="brand">Money Tracker</div>
+      
+      <div id="state">Please Login</div>
+      <button id="login">Login with Google</button>
+    </div>
+    
+    <script src="assets/js/config.js"></script>
+    <script type="module">
+      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+      const supabase = createClient('https://glduiypkpsuxzdjscuhq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8');
+      const state=document.getElementById('state'),loginBtn=document.getElementById('login');
+      
+      // 从数据库获取允许的用户列表
+      async function getAllowedUsers() {
+        try {
+          const { data, error } = await supabase
+            .from('allowed_users')
+            .select('email, display_name, role')
+            .eq('is_active', true);
+          
+          if (error) {
+            console.error('Error fetching allowed users:', error);
+            return [];
+          }
+          
+          return data || [];
+        } catch (err) {
+          console.error('Exception fetching allowed users:', err);
+          return [];
+        }
+      }
+      
+      // 检查用户是否被允许
+      async function isUserAllowed(email) {
+        try {
+          const allowedUsers = await getAllowedUsers();
+          return allowedUsers.some(user => user.email === email);
+        } catch (err) {
+          console.error('Exception checking user allowed:', err);
+          return false;
+        }
+      }
+      
+      // 提取邮箱前缀
+      function getEmailPrefix(email) {
+        return email.split('@')[0];
+      }
+      
+      async function render(){
+        console.log('render() called');
+        const {data}=await supabase.auth.getUser();
+        const u=data.user;
+        console.log('user:', u);
+        if(u){
+          // 检查邮箱是否在数据库中
+          const isAllowed = await isUserAllowed(u.email);
+          if(isAllowed){
+            // 登录成功，跳转到主页
+            window.location.href = 'home.html';
+          } else {
+            // 不在允许列表中，自动登出
+            await supabase.auth.signOut();
+            state.textContent='Access Denied. Please contact administrator.';
+            loginBtn.style.display='inline-block';
+          }
+        }else{
+          state.textContent='Please Login';
+          loginBtn.style.display='inline-block';
+        }
+      }
+      
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed:', event, session);
+        render();
+      });
+      
+      loginBtn.onclick=async()=>{
+        console.log('Login clicked');
+        await supabase.auth.signInWithOAuth({provider:'google',options: { redirectTo: window.location.origin + '/home.html' }})
+      }
+      
+      render();
+    </script>
+  </body>
+</html>

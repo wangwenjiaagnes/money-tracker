@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Test - Money Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Money Tracker - Basic Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Configuration Test</h2>
+        <div id="config-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Supabase Connection Test</h2>
+        <div id="supabase-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Currency Configuration Test</h2>
+        <div id="currency-test"></div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        // Test 1: Configuration
+        function testConfig() {
+            const configDiv = document.getElementById('config-test');
+            try {
+                if (window.APP_CONFIG) {
+                    configDiv.innerHTML = '<p class="success">✓ Configuration loaded successfully</p>';
+                    configDiv.innerHTML += '<pre>' + JSON.stringify(window.APP_CONFIG.currencies, null, 2) + '</pre>';
+                } else {
+                    configDiv.innerHTML = '<p class="error">✗ Configuration not found</p>';
+                }
+            } catch (error) {
+                configDiv.innerHTML = '<p class="error">✗ Configuration error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Test 2: Supabase Connection
+        async function testSupabase() {
+            const supabaseDiv = document.getElementById('supabase-test');
+            try {
+                const supabase = createClient(
+                    'https://glduiypkpsuxzdjscuhq.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8'
+                );
+                
+                // Test basic connection
+                const { data, error } = await supabase.from('ledgers').select('count').limit(1);
+                
+                if (error) {
+                    supabaseDiv.innerHTML = '<p class="error">✗ Supabase connection failed: ' + error.message + '</p>';
+                } else {
+                    supabaseDiv.innerHTML = '<p class="success">✓ Supabase connection successful</p>';
+                }
+            } catch (error) {
+                supabaseDiv.innerHTML = '<p class="error">✗ Supabase error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Test 3: Currency Configuration
+        function testCurrency() {
+            const currencyDiv = document.getElementById('currency-test');
+            try {
+                if (window.APP_CONFIG && window.APP_CONFIG.currencies) {
+                    const currencies = window.APP_CONFIG.currencies;
+                    let hasErrors = false;
+                    let errorMessages = [];
+                    
+                    // Check each currency
+                    Object.keys(currencies).forEach(code => {
+                        const currency = currencies[code];
+                        if (!currency.symbol || currency.symbol.includes('image.png')) {
+                            hasErrors = true;
+                            errorMessages.push(`${code}: Invalid symbol "${currency.symbol}"`);
+                        }
+                        if (!currency.name) {
+                            hasErrors = true;
+                            errorMessages.push(`${code}: Missing name`);
+                        }
+                    });
+                    
+                    if (hasErrors) {
+                        currencyDiv.innerHTML = '<p class="error">✗ Currency configuration errors:</p>';
+                        currencyDiv.innerHTML += '<ul>' + errorMessages.map(msg => '<li>' + msg + '</li>').join('') + '</ul>';
+                    } else {
+                        currencyDiv.innerHTML = '<p class="success">✓ All currency configurations are valid</p>';
+                    }
+                } else {
+                    currencyDiv.innerHTML = '<p class="error">✗ Currency configuration not found</p>';
+                }
+            } catch (error) {
+                currencyDiv.innerHTML = '<p class="error">✗ Currency test error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Run tests
+        testConfig();
+        testSupabase();
+        testCurrency();
+    </script>
+</body>
+</html>
+
+

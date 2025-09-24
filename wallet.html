@@ -1,0 +1,1333 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Wallet - Money Tracker</title>
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/png" href="assets/png/app_icon.png" />
+    <link rel="shortcut icon" type="image/png" href="assets/png/app_icon.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="assets/png/app_icon.png" />
+    <link rel="apple-touch-icon-precomposed" href="assets/png/app_icon.png" />
+    
+    <!-- Android Web App Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Money Tracker" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /* 统一字体系统 - 精简版 */
+        :root {
+            /* 字号系统 - 6种统一字号，层次更清晰 */
+            --font-size-xs: 11px;    /* 辅助信息、标签 */
+            --font-size-sm: 13px;    /* 小文本、说明 */
+            --font-size-base: 15px;  /* 正文、主要内容 */
+            --font-size-md: 17px;    /* 小标题、重要信息 */
+            --font-size-lg: 20px;    /* 标题、章节 */
+            --font-size-xl: 26px;    /* 大标题、品牌 */
+            
+            /* 字重系统 - 简化 */
+            --font-weight-normal: 400;
+            --font-weight-medium: 600;
+            --font-weight-bold: 700;
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            min-height: 100vh;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
+            background-size: cover !important;
+        }
+        
+        /* 确保背景不会被任何元素覆盖 */
+        html::before, body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: -9999;
+            pointer-events: none;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 10px 16px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link img {
+            color: #667eea;
+        }
+
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-link.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: #5a67d8;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .nav-link.active:hover {
+            background: rgba(102, 126, 234, 0.15);
+            transform: none;
+        }
+
+        .transaction-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .transaction-btn:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 移动端响应式设计 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                gap: 12px !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+            }
+            
+            .nav-link {
+                padding: 8px 12px;
+            }
+            
+            .transaction-btn {
+                padding: 8px 12px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .transaction-btn::before {
+                content: '';
+                width: 20px;
+                height: 20px;
+                background-image: url('assets/svg/add.svg');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                filter: brightness(0) invert(1);
+            }
+            
+            .transaction-btn span {
+                display: none;
+            }
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .filters-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: none;
+            box-shadow: none !important;
+            -webkit-box-shadow: none !important;
+            -moz-box-shadow: none !important;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            font-size: var(--font-size-base);
+            color: #2d3748;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-select:hover {
+            border-color: #cbd5e0;
+        }
+
+        /* Summary Section Styles */
+        .summary-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .summary-title {
+            font-size: 18px;
+            font-weight: var(--font-weight-bold);
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .summary-card {
+            background: white;
+            color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .summary-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+        }
+
+        .summary-card .selected-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            display: none;
+        }
+
+        .summary-card.selected .selected-icon {
+            display: block;
+        }
+
+        .summary-card .edit-icon {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 20px;
+            height: 20px;
+            display: none;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .summary-card .edit-icon:hover {
+            opacity: 1;
+        }
+
+        .summary-card.selected .edit-icon {
+            display: block;
+        }
+
+        .summary-card.income {
+            background: white;
+            color: #333;
+        }
+
+        .summary-card.expense {
+            background: white;
+            color: #333;
+        }
+
+        .summary-card.net {
+            background: white;
+            color: #333;
+        }
+
+        .summary-card.count {
+            background: white;
+            color: #333;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            font-weight: var(--font-weight-normal);
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 4px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 13px;
+            font-weight: var(--font-weight-normal);
+            color: #333;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-view-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn:hover {
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .view-btn.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .wallet-selector {
+            margin-bottom: 20px;
+        }
+
+        .wallet-select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            font-size: var(--font-size-base);
+            color: #2d3748;
+            min-width: 200px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            color: #666;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-color.balance {
+            background: #3b82f6;
+        }
+
+        /* 移动端响应式 */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 16px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .summary-section {
+                padding: 16px;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .summary-card {
+                padding: 16px;
+            }
+            
+            .summary-value {
+                font-size: 24px;
+            }
+            
+            .summary-label {
+                font-size: 12px;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .chart-view-toggle {
+                justify-content: flex-start;
+            }
+
+            .wallet-selector {
+                text-align: center;
+            }
+
+            .wallet-select {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .chart-container {
+                height: 300px;
+                overflow-x: auto;
+            }
+            
+            .chart-legend {
+                flex-wrap: wrap;
+                gap: 12px;
+                justify-content: center;
+            }
+            
+            .legend-item {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 16px;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .nav-menu {
+                flex-direction: row;
+                gap: 12px;
+                justify-content: center;
+            }
+
+            .main-container {
+                padding: 12px;
+            }
+
+            .filters-section,
+            .summary-section,
+            .chart-section {
+                padding: 16px;
+            }
+
+            .summary-section {
+                padding: 12px;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .summary-card {
+                padding: 12px;
+            }
+            
+            .summary-value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="nav-container">
+            <div class="brand">
+                Money Tracker
+            </div>
+            <div class="nav-menu">
+                <a href="home.html" class="nav-link" title="Home">
+                    <img src="assets/svg/home.svg?v=2" alt="Home" width="20" height="20">
+                </a>
+                <a href="analysis.html" class="nav-link" title="Analysis">
+                    <img src="assets/svg/analysis.svg?v=2" alt="Analysis" width="20" height="20">
+                </a>
+                <span class="nav-link active" title="Wallet">
+                    <img src="assets/svg/wallet.svg?v=2" alt="Wallet" width="20" height="20">
+                </span>
+                <a href="settings.html" class="nav-link" title="Settings">
+                    <img src="assets/svg/settings.svg?v=2" alt="Settings" width="20" height="20">
+                </a>
+                <a href="transaction.html" class="nav-link transaction-btn"><span>+Transaction</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-grid" id="wallet-summary-grid">
+                <!-- 钱包余额卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <div class="chart-title" id="chart-title">Balance Trends</div>
+                <div class="chart-view-toggle">
+                    <button class="view-btn active" data-view="monthly">Monthly</button>
+                    <button class="view-btn" data-view="daily">Daily</button>
+                </div>
+            </div>
+            
+            <div class="wallet-selector" style="display: none;">
+                <select id="wallet-select" class="wallet-select">
+                    <option value="">Select a wallet to view trends</option>
+                </select>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="wallet-chart"></canvas>
+            </div>
+            <div class="chart-legend" id="chart-legend">
+                <!-- Legend will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/supabase.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/timezoneManager.js"></script>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        import { formatCompactWithTitle, applyNumberFormat, formatCompactText } from './assets/js/numberFormat.js';
+        
+        const supabase = createClient('https://glduiypkpsuxzdjscuhq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8');
+
+        // 初始化时区管理器
+        window.timezoneManager = new TimezoneManager(supabase);
+        
+        // 全局变量
+        let wallets = [];
+        let walletEntries = [];
+        let currentView = 'monthly';
+        let selectedWalletId = '';
+        let walletChart = null;
+        let userUUIDMap = {}; // 存储email到UUID的映射
+
+        // 跳转到创建wallet页面
+        function goToCreateWallet() {
+            // 跳转到设置页面，并添加参数来指示要打开wallet部分
+            window.location.href = 'settings.html?section=wallet&action=create';
+        }
+
+        // 将函数添加到全局作用域
+        window.goToCreateWallet = goToCreateWallet;
+
+        // 显示没有wallet的友好提示
+        function showNoWalletMessage() {
+            console.log('🔍 showNoWalletMessage 被调用');
+            const mainContainer = document.querySelector('.main-container');
+            console.log('🔍 mainContainer 元素:', mainContainer);
+            
+            if (mainContainer) {
+                mainContainer.innerHTML = `
+                    <div style="text-align: center; padding: 48px 24px; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div style="width: 64px; height: 64px; margin: 0 auto 24px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;">💳</div>
+                        <h2 style="color: #374151; margin-bottom: 16px; font-size: 20px; font-weight: 600; letter-spacing: -0.025em;">Let's Set Up Your Wallets!</h2>
+                        <p style="color: #6b7280; margin-bottom: 32px; line-height: 1.6; font-size: 15px; max-width: 320px; margin-left: auto; margin-right: auto;">
+                            Wallets help you organize your money by different accounts or purposes. Create your first wallet to start managing your finances effectively.
+                        </p>
+                        <button onclick="goToCreateWallet()" 
+                                style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.2s ease;"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(59, 130, 246, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)'">
+                            Create Your First Wallet
+                        </button>
+                    </div>
+                `;
+                console.log('🔍 mainContainer 内容已替换');
+                
+                // 停止后续的初始化流程，避免错误
+                return true;
+            } else {
+                console.log('❌ 找不到 .main-container 元素');
+                return false;
+            }
+        }
+
+        // 获取当前用户信息
+        async function getCurrentUserInfo() {
+            try {
+                console.log('Getting current user info...');
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    throw new Error('User not authenticated');
+                }
+                console.log('Current user:', user.email);
+                
+                // 从userUUIDMap中获取当前用户的UUID和display_name
+                console.log('userUUIDMap:', userUUIDMap);
+                const userUUID = userUUIDMap[user.email];
+                if (!userUUID) {
+                    throw new Error('User not found in allowed_users table');
+                }
+                console.log('Current user UUID:', userUUID);
+                
+                // 从allowed_users表获取用户信息
+                const { data: userInfo, error } = await supabase
+                    .from('allowed_users')
+                    .select('id, display_name')
+                    .eq('id', userUUID)
+                    .single();
+                
+                if (error) throw error;
+                console.log('User info result:', userInfo);
+                
+                return userInfo;
+            } catch (error) {
+                console.error('Error getting current user info:', error);
+                throw error;
+            }
+        }
+
+        // 加载用户信息
+        async function loadPayers() {
+            try {
+                const { data, error } = await supabase
+                    .from('allowed_users')
+                    .select('id, email, display_name')
+                    .eq('is_active', true)
+                    .order('display_name');
+                
+                if (error) throw error;
+                
+                // 构建email到UUID的映射
+                userUUIDMap = {};
+                data.forEach(user => {
+                    userUUIDMap[user.email] = user.id;
+                });
+                
+                console.log('Loaded payers:', data.length);
+                console.log('userUUIDMap:', userUUIDMap);
+            } catch (error) {
+                console.error('Error loading payers:', error);
+            }
+        }
+
+        // 初始化页面
+        async function init() {
+            try {
+                console.log('Initializing wallet page...');
+                
+                // 先初始化UI组件
+                initializeChartControls();
+                
+                // 然后尝试加载数据
+                await checkAuth();
+                await loadPayers(); // 先加载用户信息，建立userUUIDMap
+                const walletLoaded = await loadWallets(); // 然后加载钱包，此时userUUIDMap已可用
+                
+                // 如果显示了无wallet的友好提示，停止后续初始化
+                if (walletLoaded === true) {
+                    console.log('🔍 已显示无wallet提示，停止后续初始化');
+                    return;
+                }
+                
+                await loadWalletEntries();
+                
+                // 更新UI
+                updateWalletSummary();
+                updateWalletSelector();
+                
+                console.log('Wallet page initialization completed');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                // 显示错误信息给用户
+                showErrorMessage('Page initialization failed, please refresh and try again');
+            }
+        }
+
+        // 显示错误信息
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ff6b6b;
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            // 5秒后自动移除
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        // 检查认证状态
+        async function checkAuth() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    console.log('No user found, redirecting to login');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                console.log('User authenticated:', user.email);
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // 不要立即跳转，先尝试继续加载页面
+                console.log('Continuing without auth check...');
+            }
+        }
+
+        // 加载钱包数据（支持访问控制开关）
+        async function loadWallets() {
+            try {
+                console.log('Loading wallets...');
+                if (!supabase) {
+                    console.error('Supabase client not available');
+                    throw new Error('Supabase client not available');
+                }
+
+                const useAccessControl = !!(window.APP_CONFIG && window.APP_CONFIG.accessControl && window.APP_CONFIG.accessControl.enabled);
+                let data = [];
+
+                if (useAccessControl) {
+                    try {
+                        const currentUser = await getCurrentUserInfo();
+                        const currentUserId = currentUser.id;
+
+                    // 个人钱包：owner_id = 我在 allowed_users 中的 ID
+                    const { data: personal, error: pErr } = await supabase
+                        .from('wallets')
+                        .select('*')
+                        .eq('is_archived', false)
+                        .eq('wallet_type', 'personal')
+                        .eq('owner_id', currentUserId);
+                    if (pErr) throw pErr;
+
+                    // 共享钱包：wallet_members 包含我
+                    const { data: shared, error: sErr } = await supabase
+                        .from('wallets')
+                        .select('*, wallet_members!inner(user_id)')
+                        .eq('is_archived', false)
+                        .eq('wallet_type', 'shared')
+                        .eq('wallet_members.user_id', currentUserId);
+                    if (sErr) throw sErr;
+
+                    data = [...(personal || []), ...(shared || [])]
+                        .sort((a, b) => (a.wallet_type === b.wallet_type ? a.name.localeCompare(b.name) : (a.wallet_type === 'shared' ? -1 : 1)));
+
+                    // 无权限时显示空状态（不再回退显示全部）
+                    if (data.length === 0) {
+                        console.log('用户无钱包权限，显示空状态');
+                    }
+                    } catch (userError) {
+                        console.error('Error getting user info:', userError);
+                        // 如果用户不存在或没有权限，显示空状态
+                        data = [];
+                    }
+                } else {
+                    // 旧逻辑：加载全部
+                    const { data: all, error } = await supabase
+                        .from('wallets')
+                        .select('*')
+                        .eq('is_archived', false)
+                        .order('wallet_type', { ascending: false })
+                        .order('name');
+                    if (error) throw error;
+                    data = all || [];
+                }
+
+                wallets = data;
+                console.log('Successfully loaded wallets:', wallets.length);
+
+                // 如果没有钱包，显示友好提示
+                if (data.length === 0 && useAccessControl) {
+                    console.log('🔍 条件满足，准备显示友好提示');
+                    console.log('data.length:', data.length);
+                    console.log('useAccessControl:', useAccessControl);
+                    const messageShown = showNoWalletMessage();
+                    if (messageShown) {
+                        return true; // 停止后续初始化
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading wallets:', error);
+                wallets = [];
+                if (error.message && !error.message.includes('auth')) {
+                    showErrorMessage('Failed to load wallet data, please check network connection');
+                } else {
+                    console.log('Authentication or permission issue, continuing without wallets');
+                }
+            }
+        }
+
+        // 加载钱包流水数据
+        async function loadWalletEntries() {
+            try {
+                console.log('Loading wallet entries...');
+                
+                // 检查supabase是否可用
+                if (!supabase) {
+                    console.error('Supabase client not available');
+                    throw new Error('Supabase client not available');
+                }
+                
+                const { data, error } = await supabase
+                    .from('wallet_entries')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    console.error('Error details:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
+                    throw error;
+                }
+                
+                walletEntries = data || [];
+                console.log('Successfully loaded wallet entries:', walletEntries.length);
+                
+                // 按钱包分组显示数据
+                const entriesByWallet = {};
+                walletEntries.forEach(entry => {
+                    if (!entriesByWallet[entry.wallet_id]) {
+                        entriesByWallet[entry.wallet_id] = [];
+                    }
+                    entriesByWallet[entry.wallet_id].push(entry);
+                });
+                
+                console.log('Wallet entries by wallet:');
+                Object.keys(entriesByWallet).forEach(walletId => {
+                    const wallet = wallets.find(w => w.id === walletId);
+                    const walletName = wallet ? wallet.name : walletId;
+                    console.log(`  ${walletName}: ${entriesByWallet[walletId].length} entries`);
+                    entriesByWallet[walletId].forEach(entry => {
+                        const localDate = new Date(entry.created_at);
+                        console.log(`    ${entry.created_at} -> ${localDate.toLocaleString()} (${entry.amount} ${entry.currency})`);
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error loading wallet entries:', error);
+                // 设置空数组，避免后续错误
+                walletEntries = [];
+                
+                // 只在非认证错误时显示错误消息
+                if (error.message && !error.message.includes('auth')) {
+                    showErrorMessage('Failed to load wallet transaction data, please check network connection');
+                } else {
+                    console.log('Authentication or permission issue, continuing without wallet entries');
+                }
+            }
+        }
+
+
+
+        // 更新钱包汇总
+        function updateWalletSummary() {
+            const summaryGrid = document.getElementById('wallet-summary-grid');
+            
+            // 按类型分组：shared钱包、用户钱包
+            const sharedWallets = wallets.filter(wallet => wallet.wallet_type === 'shared');
+            const userWallets = wallets.filter(wallet => wallet.wallet_type === 'personal');
+            
+            // 如果没有选中钱包且有可用钱包，默认选中第一个
+            if (!selectedWalletId && wallets.length > 0) {
+                selectedWalletId = wallets[0].id;
+                console.log('Auto-selecting first wallet:', wallets[0].name);
+            }
+            
+            let summaryHTML = '';
+            
+            // 显示shared钱包
+            sharedWallets.forEach(wallet => {
+                const balance = parseFloat(wallet.balance || 0);
+                const isSelected = selectedWalletId === wallet.id;
+                summaryHTML += `
+                    <div class="summary-card ${isSelected ? 'selected' : ''}" data-wallet-id="${wallet.id}">
+                        <img src="assets/svg/edit.svg" alt="Edit" class="edit-icon" data-wallet-id="${wallet.id}">
+                        <img src="assets/svg/selected.svg" alt="Selected" class="selected-icon">
+                        <div class="summary-label">${wallet.name}</div>
+                        <div class="summary-value">${formatCurrency(balance, wallet.currency)}</div>
+                    </div>
+                `;
+            });
+            
+            // 显示用户钱包
+            userWallets.forEach(wallet => {
+                const balance = parseFloat(wallet.balance || 0);
+                const isSelected = selectedWalletId === wallet.id;
+                summaryHTML += `
+                    <div class="summary-card ${isSelected ? 'selected' : ''}" data-wallet-id="${wallet.id}">
+                        <img src="assets/svg/edit.svg" alt="Edit" class="edit-icon" data-wallet-id="${wallet.id}">
+                        <img src="assets/svg/selected.svg" alt="Selected" class="selected-icon">
+                        <div class="summary-label">${wallet.name}</div>
+                        <div class="summary-value">${formatCurrency(balance, wallet.currency)}</div>
+                    </div>
+                `;
+            });
+            
+
+            
+            summaryGrid.innerHTML = summaryHTML;
+            
+            // 添加点击事件监听器
+            document.querySelectorAll('.summary-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // 如果点击的是编辑按钮，不触发选择钱包
+                    if (e.target.classList.contains('edit-icon')) {
+                        return;
+                    }
+                    const walletId = this.getAttribute('data-wallet-id');
+                    selectWallet(walletId);
+                });
+            });
+
+            // 添加编辑按钮点击事件监听器
+            document.querySelectorAll('.edit-icon').forEach(editBtn => {
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    const walletId = this.getAttribute('data-wallet-id');
+                    // 跳转到Settings页面的钱包管理部分并自动编辑
+                    window.location.href = `settings.html?section=wallet&edit=${walletId}`;
+                });
+            });
+            
+            // 如果有选中的钱包，自动更新图表
+            if (selectedWalletId) {
+                updateWalletChart();
+            }
+        }
+
+        // 选择钱包
+        function selectWallet(walletId) {
+            selectedWalletId = walletId;
+            updateWalletSummary(); // 更新选中状态
+            if (selectedWalletId) {
+                updateWalletChart(); // 更新图表
+            } else {
+                if (walletChart) {
+                    walletChart.destroy();
+                    walletChart = null;
+                }
+            }
+        }
+
+        // 更新钱包选择器
+        function updateWalletSelector() {
+            const walletSelect = document.getElementById('wallet-select');
+            
+            walletSelect.innerHTML = '<option value="">Select a wallet to view trends</option>' +
+                wallets.map(wallet => 
+                    `<option value="${wallet.id}">${wallet.name} (${wallet.currency})</option>`
+                ).join('');
+            
+            walletSelect.addEventListener('change', (e) => {
+                selectedWalletId = e.target.value;
+                updateWalletSummary(); // 更新选中状态
+                if (selectedWalletId) {
+                    updateWalletChart();
+                } else {
+                    if (walletChart) {
+                        walletChart.destroy();
+                        walletChart = null;
+                    }
+                }
+            });
+        }
+
+        // 初始化图表控制
+        function initializeChartControls() {
+            const viewButtons = document.querySelectorAll('.view-btn');
+            viewButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    viewButtons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentView = e.target.dataset.view;
+                    if (selectedWalletId) {
+                        updateWalletChart();
+                    }
+                });
+            });
+        }
+
+        // 更新钱包图表
+        function updateWalletChart() {
+            if (!selectedWalletId) return;
+            
+            const wallet = wallets.find(w => w.id === selectedWalletId);
+            if (!wallet) return;
+            
+            // 更新标题
+            const chartTitle = document.getElementById('chart-title');
+            chartTitle.textContent = `Balance Trends - ${wallet.name}`;
+            
+            // 更新legend
+            const chartLegend = document.getElementById('chart-legend');
+            chartLegend.innerHTML = `
+                <div class="legend-item">
+                    <div class="legend-color balance"></div>
+                    <span>${wallet.name}</span>
+                </div>
+            `;
+            
+            const walletEntriesForWallet = walletEntries.filter(entry => 
+                entry.wallet_id === selectedWalletId
+            );
+            
+            console.log(`Selected wallet: ${wallet.name} (${wallet.id})`);
+            console.log(`Wallet entries for this wallet:`, walletEntriesForWallet);
+            
+            if (walletEntriesForWallet.length === 0) {
+                console.log('No wallet entries found for selected wallet');
+                return;
+            }
+            
+            let chartData;
+            if (currentView === 'monthly') {
+                chartData = getMonthlyBalanceData(walletEntriesForWallet);
+            } else {
+                chartData = getDailyBalanceData(walletEntriesForWallet);
+            }
+            
+            console.log(`Chart data for ${currentView} view:`, chartData);
+            
+            renderWalletChart(chartData, wallet.name, wallet.currency);
+        }
+
+        // 获取月度余额数据
+        function getMonthlyBalanceData(entries) {
+            const monthlyData = {};
+            
+            entries.forEach(entry => {
+                // 直接使用Date对象，JavaScript会自动转换为本地时间
+                const localDate = new Date(entry.created_at);
+                
+                const monthKey = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}`;
+                
+                console.log(`Entry: ${entry.created_at} -> Local: ${localDate.toLocaleString()} -> Month: ${monthKey}`);
+                
+                // 如果该月还没有记录，或者当前记录时间更晚，则更新
+                if (!monthlyData[monthKey] || new Date(entry.created_at) > new Date(monthlyData[monthKey].date)) {
+                    monthlyData[monthKey] = {
+                        date: entry.created_at,
+                        balance: parseFloat(entry.balance_after)
+                    };
+                }
+            });
+            
+            // 转换为数组并排序
+            return Object.keys(monthlyData)
+                .sort()
+                .map(month => ({
+                    label: month,
+                    balance: monthlyData[month].balance
+                }));
+        }
+
+        // 获取日度余额数据
+        function getDailyBalanceData(entries) {
+            const dailyData = {};
+            
+            // 显示时区信息
+            console.log('=== TIMEZONE INFO ===');
+            console.log('Browser timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+            console.log('Timezone offset (minutes):', new Date().getTimezoneOffset());
+            console.log('Current local time:', new Date().toLocaleString());
+            console.log('========================');
+            
+            entries.forEach(entry => {
+                // 直接使用Date对象，JavaScript会自动转换为本地时间
+                const localDate = new Date(entry.created_at);
+                
+                const dayKey = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+                
+                console.log(`Entry: ${entry.created_at} -> Local: ${localDate.toLocaleString()} -> Day: ${dayKey}`);
+                console.log(`  UTC: ${entry.created_at}`);
+                console.log(`  Local: ${localDate.toLocaleString()}`);
+                console.log(`  Day key: ${dayKey}`);
+                console.log(`  Balance: ${entry.balance_after}`);
+                console.log('---');
+                
+                // 如果该天还没有记录，或者当前记录时间更晚，则更新
+                if (!dailyData[dayKey] || new Date(entry.created_at) > new Date(dailyData[dayKey].date)) {
+                    dailyData[dayKey] = {
+                        date: entry.created_at,
+                        balance: parseFloat(entry.balance_after)
+                    };
+                }
+            });
+            
+            console.log('Daily data keys:', Object.keys(dailyData));
+            console.log('Daily data (real data only):', dailyData);
+            
+            // 转换为数组并排序
+            return Object.keys(dailyData)
+                .sort()
+                .map(day => ({
+                    label: day,
+                    balance: dailyData[day].balance
+                }));
+        }
+
+        // 渲染钱包图表
+        function renderWalletChart(data, walletName, walletCurrency) {
+            const ctx = document.getElementById('wallet-chart').getContext('2d');
+            
+            // 销毁现有图表
+            if (walletChart) {
+                walletChart.destroy();
+                walletChart = null;
+            }
+            
+            walletChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        label: walletName,
+                        data: data.map(d => d.balance),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#2563eb',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#718096'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                color: '#718096',
+                                                            callback: function(value) {
+                                const symbols = {
+                                    'SGD': 'S$',
+                                    'USD': '$',
+                                    'CNY': '¥',
+                                    'MYR': 'RM'
+                                };
+                                const symbol = symbols[walletCurrency] || walletCurrency;
+                                return `${symbol}${formatCompactText(value)}`;
+                            }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#667eea'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 格式化货币
+        function formatCurrency(amount, currency) {
+            if (typeof window.formatCurrency === 'function') {
+                return window.formatCurrency(amount, currency);
+            }
+            
+            // 使用数字格式化工具
+            const symbols = {
+                'SGD': 'S$',
+                'USD': '$',
+                'CNY': '¥',
+                'MYR': 'RM'
+            };
+            
+            const symbol = symbols[currency] || currency;
+            const formattedNumber = formatCompactWithTitle(Math.abs(amount));
+            
+            // 确保负数显示负数符号
+            if (amount < 0) {
+                return `-${symbol}${formattedNumber}`;
+            } else {
+                return `${symbol}${formattedNumber}`;
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

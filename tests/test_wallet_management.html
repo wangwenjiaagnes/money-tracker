@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Management Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Wallet Management Test</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">1. Settings Page Access Test</h2>
+            <button class="test-button" onclick="testSettingsPage()">Test Settings Page</button>
+            <div id="settings-result" class="test-result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">2. Wallet Navigation Test</h2>
+            <button class="test-button" onclick="testWalletNavigation()">Test Wallet Navigation</button>
+            <div id="navigation-result" class="test-result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">3. Wallet Form Test</h2>
+            <button class="test-button" onclick="testWalletForm()">Test Wallet Form</button>
+            <div id="form-result" class="test-result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">4. Multi-Currency Display Test</h2>
+            <button class="test-button" onclick="testMultiCurrency()">Test Multi-Currency</button>
+            <div id="currency-result" class="test-result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">5. Database Connection Test</h2>
+            <button class="test-button" onclick="testDatabaseConnection()">Test Database</button>
+            <div id="database-result" class="test-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        const supabase = createClient('https://glduiypkpsuxzdjscuhq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZHVpeXBrcHN1eHpkanNjdWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0MzYwOTEsImV4cCI6MjA3MTAxMjA5MX0.dZO3fa7PCcJG0yxSbtJXPVbp31c-C4VAFKmk9SOtji8');
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `test-result ${type}`;
+            element.innerHTML = message;
+        }
+
+        window.testSettingsPage = function() {
+            try {
+                // 测试settings页面是否可以访问
+                fetch('/settings.html')
+                    .then(response => {
+                        if (response.ok) {
+                            showResult('settings-result', '✅ Settings page is accessible', 'success');
+                        } else {
+                            showResult('settings-result', `❌ Settings page returned status: ${response.status}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showResult('settings-result', `❌ Error accessing settings page: ${error.message}`, 'error');
+                    });
+            } catch (error) {
+                showResult('settings-result', `❌ Test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testWalletNavigation = function() {
+            try {
+                // 测试Wallet导航项是否存在
+                const walletNav = document.querySelector('.settings-nav-item[onclick*="wallet"]');
+                if (walletNav) {
+                    showResult('navigation-result', '✅ Wallet navigation item found', 'success');
+                } else {
+                    showResult('navigation-result', '❌ Wallet navigation item not found', 'error');
+                }
+            } catch (error) {
+                showResult('navigation-result', `❌ Test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testWalletForm = function() {
+            try {
+                // 测试Wallet表单元素是否存在
+                const formElements = [
+                    'wallet-form-overlay',
+                    'wallet-name',
+                    'wallet-type',
+                    'wallet-currency',
+                    'wallet-amount',
+                    'wallet-description'
+                ];
+                
+                let allFound = true;
+                let missingElements = [];
+                
+                formElements.forEach(elementId => {
+                    const element = document.getElementById(elementId);
+                    if (!element) {
+                        allFound = false;
+                        missingElements.push(elementId);
+                    }
+                });
+                
+                if (allFound) {
+                    showResult('form-result', '✅ All wallet form elements found', 'success');
+                } else {
+                    showResult('form-result', `❌ Missing elements: ${missingElements.join(', ')}`, 'error');
+                }
+            } catch (error) {
+                showResult('form-result', `❌ Test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testMultiCurrency = function() {
+            try {
+                // 测试多币种显示元素是否存在
+                const currencyElements = [
+                    'wallet-sgd-display',
+                    'wallet-cny-display',
+                    'wallet-usd-display',
+                    'wallet-myr-display'
+                ];
+                
+                let allFound = true;
+                let missingElements = [];
+                
+                currencyElements.forEach(elementId => {
+                    const element = document.getElementById(elementId);
+                    if (!element) {
+                        allFound = false;
+                        missingElements.push(elementId);
+                    }
+                });
+                
+                if (allFound) {
+                    showResult('currency-result', '✅ All multi-currency display elements found', 'success');
+                } else {
+                    showResult('currency-result', `❌ Missing elements: ${missingElements.join(', ')}`, 'error');
+                }
+            } catch (error) {
+                showResult('currency-result', `❌ Test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testDatabaseConnection = async function() {
+            try {
+                // 测试数据库连接
+                const { data, error } = await supabase
+                    .from('wallet')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    showResult('database-result', `❌ Database connection failed: ${error.message}`, 'error');
+                } else {
+                    showResult('database-result', '✅ Database connection successful', 'success');
+                }
+            } catch (error) {
+                showResult('database-result', `❌ Test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // 页面加载完成后自动运行基本测试
+        window.addEventListener('load', function() {
+            console.log('Wallet Management Test Page Loaded');
+            console.log('Available test functions:');
+            console.log('- testSettingsPage()');
+            console.log('- testWalletNavigation()');
+            console.log('- testWalletForm()');
+            console.log('- testMultiCurrency()');
+            console.log('- testDatabaseConnection()');
+        });
+    </script>
+</body>
+</html>
+
