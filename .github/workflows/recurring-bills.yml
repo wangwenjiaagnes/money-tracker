@@ -2,18 +2,50 @@ name: Run Recurring Bills
 
 on:
   schedule:
-    # 每天凌晨 2 点执行（UTC 时间）
-    - cron: '0 2 * * *'
-  workflow_dispatch: # 允许手动触发
+    # 中国时间每天 02:05 执行（UTC 18:05）
+    - cron: "5 18 * * *"
+  workflow_dispatch:
 
 jobs:
   run-recurring-bills:
     runs-on: ubuntu-latest
     steps:
-      - name: Call Supabase Edge Function
+      - name: Trigger Supabase Edge Function
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -X POST \
-            "${{ secrets.SUPABASE_URL }}/functions/v1/recurring-bill-runner" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{"action": "run_recurring_bills"}'
+          set -e
+          attempt=0
+          max_attempts=3
+          until [ $attempt -ge $max_attempts ]; do
+            attempt=$((attempt+1))
+            echo "Attempt $attempt of $max_attempts..."
+
+            RESPONSE=$(curl -sS --fail -m 30 -w "\n%{http_code}" \
+              -X POST "${SUPABASE_URL}/functions/v1/recurring-bill-runner" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+              -H "Content-Type: application/json" \
+              --data '{"action":"run_recurring_bills"}' \
+            ) || true
+
+            BODY=$(echo "$RESPONSE" | head -n -1)
+            STATUS=$(echo "$RESPONSE" | tail -n 1)
+
+            echo "HTTP Status: $STATUS"
+            echo "Response Body:"
+            echo "$BODY"
+
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 300 ]; then
+              echo "Success"
+              exit 0
+            fi
+
+            if [ $attempt -lt $max_attempts ]; then
+              echo "Retrying in 10s..."
+              sleep 10
+            fi
+          done
+
+          echo "Failed after $max_attempts attempts"
+          exit 1
